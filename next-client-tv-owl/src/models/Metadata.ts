@@ -2,12 +2,13 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface VideoMetadata extends Document {
     videoId: Types.ObjectId;
-    ownerId: Types.ObjectId;
+    userId: Types.ObjectId;
     title: string;
     thumbnail: string;
     views: number;
     isPublished: boolean;
     createdAt: Date;
+    updatedAt: Date;
 }
 
 export const VideoMetadataSchema = new Schema<VideoMetadata>(
@@ -18,7 +19,7 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
             required: true,
             index: true,
         },
-        ownerId: {
+        userId: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
@@ -45,10 +46,10 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
     { timestamps: true }
 );
 
-VideoMetadataSchema.index({ ownerId: 1 });
+VideoMetadataSchema.index({ userId: 1 });
 VideoMetadataSchema.index({ tags: 1 });
 VideoMetadataSchema.index({ title: "text" });
-VideoMetadataSchema.index({ ownerId: 1, tags: 1 });
+VideoMetadataSchema.index({ userId: 1, tags: 1 });
 
 export const VideoMetadataModel =
     mongoose.models.VideoMetadata ||

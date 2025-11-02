@@ -1,17 +1,18 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface Video extends Document {
-    ownerId: Types.ObjectId;
+    userId: Types.ObjectId;
     shortDescription?: string;
     longDescription?: string;
     formats: { resolution: string; url: string }[];
     tags?: string[];
     duration: number;
     createdAt: Date;
+    updatedAt: Date;
 }
 
 export const VideoSchema = new Schema<Video>({
-    ownerId: {
+    userId: {
         type: Schema.Types.ObjectId,
         ref: "User",
         required: true,

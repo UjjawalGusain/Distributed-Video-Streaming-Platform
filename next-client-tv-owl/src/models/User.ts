@@ -6,6 +6,8 @@ export interface User extends Document {
     about?: string;
     watchHistory: Types.ObjectId[];
     isPremium: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export const UserSchema = new Schema<User>({
