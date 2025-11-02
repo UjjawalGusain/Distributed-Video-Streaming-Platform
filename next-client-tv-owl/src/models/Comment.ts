@@ -15,7 +15,6 @@ export const CommentSchema = new Schema<Comment>(
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
-            index: true,
         },
         targetType: {
             type: String,
@@ -26,7 +25,6 @@ export const CommentSchema = new Schema<Comment>(
             type: Schema.Types.ObjectId,
             refPath: "targetType",
             required: true,
-            index: true,
         },
         text: {
             type: String,
