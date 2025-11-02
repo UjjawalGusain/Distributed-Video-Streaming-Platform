@@ -1,0 +1,14 @@
+{
+  "name": "node-server-tv-owl",
+  "version": "1.0.0",
+  "description": "Node server for tv-owl",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Ujjawal Gusain",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
