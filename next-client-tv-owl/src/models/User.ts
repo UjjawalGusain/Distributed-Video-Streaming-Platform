@@ -39,6 +39,8 @@ export const UserSchema = new Schema<User>({
         },
     ],
 });
+UserSchema.index({ username: 1 }, { unique: true });
+
 
 export const UserModel =
     mongoose.models.User || mongoose.model<User>("User", UserSchema);
