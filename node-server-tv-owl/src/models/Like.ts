@@ -14,7 +14,6 @@ export const LikeSchema = new Schema<Like>(
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
-            index: true,
         },
         targetType: {
             type: String,
@@ -25,7 +24,6 @@ export const LikeSchema = new Schema<Like>(
             type: Schema.Types.ObjectId,
             refPath: "targetType",
             required: true,
-            index: true,
         },
     },
     { timestamps: true }

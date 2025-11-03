@@ -4,6 +4,7 @@ export interface User extends Document {
     username: string;
     email: string;
     about?: string;
+    avatar?: string;
     watchHistory: Types.ObjectId[];
     isPremium: boolean;
     createdAt: Date;
@@ -16,6 +17,10 @@ export const UserSchema = new Schema<User>({
         required: [true, "Username is required"],
         trim: true,
         unique: true,
+    },
+    avatar: {
+        type: String,
+        trim: true,
     },
     email: {
         type: String,
@@ -41,8 +46,6 @@ export const UserSchema = new Schema<User>({
         },
     ],
 });
-UserSchema.index({ username: 1 }, { unique: true });
-
 
 export const UserModel =
     mongoose.models.User || mongoose.model<User>("User", UserSchema);

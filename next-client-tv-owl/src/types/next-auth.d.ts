@@ -8,14 +8,21 @@ declare module "next-auth" {
       username: string;
       email: string;
       isPremium: boolean;
+      avatar: string;
     } & DefaultSession["user"];
   }
+
+  interface Profile {
+    picture: string;
+  }
+
 
   interface User extends DefaultUser {
     _id: string;
     username: string;
     email: string;
     isPremium: boolean;
+    avatar: string;
   }
 }
 
@@ -25,5 +32,7 @@ declare module "next-auth/jwt" {
     username: string;
     email: string;
     isPremium: boolean;
+    avatar: string;
   }
 }
+

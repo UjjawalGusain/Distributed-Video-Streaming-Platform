@@ -17,13 +17,11 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
             type: Schema.Types.ObjectId,
             ref: "Video",
             required: true,
-            index: true,
         },
         userId: {
             type: Schema.Types.ObjectId,
             ref: "User",
             required: true,
-            index: true,
         },
         title: {
             type: String,
@@ -47,6 +45,7 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
 );
 
 VideoMetadataSchema.index({ userId: 1 });
+VideoMetadataSchema.index({ videoId: 1 });
 VideoMetadataSchema.index({ tags: 1 });
 VideoMetadataSchema.index({ title: "text" });
 VideoMetadataSchema.index({ userId: 1, tags: 1 });
