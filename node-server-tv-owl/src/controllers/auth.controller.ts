@@ -2,7 +2,7 @@ import UserModel from "../models/User";
 import { Request, Response } from 'express';
 import { success, failure, ApiResponse } from "../interfaces/Response";
 
-export interface UserResponse {
+interface UserResponse {
     id: string;
     username: string;
     email: string;

@@ -1,12 +1,9 @@
 import express from "express"
 import cors from "cors"
 import dbConnect from "./db/dbConnect";
-import dotenv from "dotenv"
-import path  from "path";
+
 import authRouter from "./routes/auth.route"
-
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
-
+import videoRouter from "./routes/video.route"
 
 const app = express()
 dbConnect();
@@ -17,9 +14,11 @@ dbConnect();
 
 
 app.use(express.static("public"))
-app.use(express.json());
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 app.use('/api/auth', authRouter);
+app.use('/api/video', videoRouter);
 
 
 const PORT = process.env.PORT || 5000;
