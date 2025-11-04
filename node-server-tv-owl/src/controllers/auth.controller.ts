@@ -13,20 +13,18 @@ export interface UserResponse {
 class AuthController {
     async getUser(req: Request, res: Response<ApiResponse<UserResponse>>) {
         try {
-
             const { username, email, avatar } = req.body;
             if (!email) return res.status(400).json(failure(400, "Email required"));
 
             let user = await UserModel.findOne({ email });
             if (!user) {
                 console.log("User does not exist");
-
-                user = UserModel.create({
+                user = await UserModel.create({
                     username,
                     email,
                     avatar,
                     isPremium: false,
-                })
+                });
                 console.log(`New user created: ${username}`);
             }
 
@@ -44,6 +42,7 @@ class AuthController {
             return res.status(500).json(failure(500, "Internal Server Error"));
         }
     }
+
 };
 
 export default new AuthController();

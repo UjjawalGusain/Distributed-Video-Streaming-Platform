@@ -1,10 +1,17 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import dbConnect from "@/src/lib/dbConnect";
-import UserModel from "@/src/models/User";
+import axios from "axios";
+import { email } from "zod";
+import { UserResponse, ApiResponse } from "@/src/types/ApiResponse";
+
 
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
     throw new Error("Missing Google OAuth environment variables");
+}
+
+if (!process.env.BASE_URL_NODE_SERVER) {
+    throw new Error("Missing Base Url environment variable");
 }
 
 export const authOptions: NextAuthOptions = {
@@ -21,20 +28,18 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     callbacks: {
-        // Handle user registration or lookup here
         async signIn({ profile }) {
             if (!profile?.email) return false;
             try {
-                await dbConnect();
-                let user = await UserModel.findOne({ email: profile.email });
 
-                if (!user) {
-                    user = await UserModel.create({
-                        username: profile.name,
-                        email: profile.email,
-                        avatar: profile.picture || null,
-                        isPremium: false,
-                    });
+                const { data: userData } = await axios.post<ApiResponse<UserResponse>>(`${process.env.BASE_URL_NODE_SERVER}/api/auth/user`, {
+                    username: profile.name,
+                    email: profile.email,
+                    avatar: profile.picture ?? null,
+                });
+
+                if (!userData.success) {
+                    throw new Error("Could not create new user");
                 }
 
                 return true;
@@ -45,16 +50,30 @@ export const authOptions: NextAuthOptions = {
         },
 
 
-        async jwt({ token, user }) {
+        async jwt({ token, user, profile }) {
             try {
-                await dbConnect();
-                const dbUser = await UserModel.findOne({ email: token.email || user?.email });
-                if (dbUser) {
-                    token._id = dbUser._id.toString();
-                    token.username = dbUser.username;
-                    token.email = dbUser.email;
-                    token.isPremium = dbUser.isPremium;
-                    token.avatar = dbUser.avatar;
+                if (user || profile) {
+                    const { data: dbUser } = await axios.post<ApiResponse<UserResponse>>(
+                        `${process.env.BASE_URL_NODE_SERVER}/api/auth/user`,
+                        {
+                            username: user?.name || profile?.name,
+                            email: user?.email || profile?.email,
+                            avatar: user?.image || profile?.picture || null,
+                        }
+                    );
+
+
+                    if (!dbUser.success) {
+                        throw new Error("Could not find the user in db for jwt creation");
+                    }
+
+                    if (dbUser) {
+                        token.id = dbUser.data.id.toString();
+                        token.username = dbUser.data.username;
+                        token.email = dbUser.data.email;
+                        token.isPremium = dbUser.data.isPremium;
+                        token.avatar = dbUser.data.avatar;
+                    }
                 }
             } catch (err) {
                 console.error("Error in jwt callback:", err);
@@ -66,7 +85,7 @@ export const authOptions: NextAuthOptions = {
         async session({ session, token }) {
             try {
                 if (session.user) {
-                    session.user._id = token._id;
+                    session.user.id = token.id;
                     session.user.username = token.username;
                     session.user.email = token.email;
                     session.user.isPremium = token.isPremium;
@@ -77,6 +96,5 @@ export const authOptions: NextAuthOptions = {
             }
             return session;
         },
-
     },
 };

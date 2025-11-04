@@ -1,0 +1,24 @@
+{
+  "name": "tv-owl",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix next-client-tv-owl\" \"npm run dev --prefix node-server-tv-owl\"",
+    "build": "concurrently \"npm run build --prefix next-client-tv-owl\" \"npm run build --prefix node-server-tv-owl\"",
+    "start": "concurrently \"npm run start --prefix next-client-tv-owl\" \"npm run start --prefix node-server-tv-owl\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UjjawalGusain/Distributed-Video-Streaming-Platform.git"
+  },
+  "author": "UjjawalGusain",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/UjjawalGusain/Distributed-Video-Streaming-Platform/issues"
+  },
+  "homepage": "https://github.com/UjjawalGusain/Distributed-Video-Streaming-Platform#readme",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
