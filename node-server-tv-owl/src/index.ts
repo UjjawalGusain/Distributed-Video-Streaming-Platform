@@ -11,7 +11,7 @@ dbConnect();
 //     origin: process.env.CORS_ORIGIN,
 //     credentials: true,
 // }))
-
+app.use(cors({ origin: "http://localhost:3000" }));
 
 app.use(express.static("public"))
 app.use(express.json({ limit: "50mb" }));

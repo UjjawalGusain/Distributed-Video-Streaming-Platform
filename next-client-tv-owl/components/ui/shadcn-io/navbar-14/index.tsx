@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useId } from 'react';
+import Link from 'next/link';
 import {
   LayoutGridIcon,
   PlusIcon,
@@ -36,6 +37,7 @@ export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   onInfoItemClick?: (item: string) => void;
   onNotificationClick?: (notificationId: string) => void;
   onSettingsItemClick?: (item: string) => void;
+  addLink?: string;
 }
 
 export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
@@ -51,6 +53,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       onInfoItemClick,
       onNotificationClick,
       onSettingsItemClick,
+      addLink,
       ...props
     },
     ref
@@ -135,22 +138,36 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
             <SettingsMenu onItemClick={onSettingsItemClick} />
 
             {/* Add */}
-            <Button
-              size="icon"
-              variant="default"
-              className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md"
-              aria-label="Add"
-              onClick={onAddClick}
-            >
-              <PlusIcon size={16} />
-            </Button>
+            {addLink ? (
+              <Link href={addLink}>
+                <Button
+                  size="icon"
+                  variant="default"
+                  className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md"
+                  aria-label="Add"
+                >
+                  <PlusIcon size={16} />
+                </Button>
+              </Link>
+            ) : (
+              <Button
+                size="icon"
+                variant="default"
+                className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md"
+                aria-label="Add"
+                onClick={onAddClick}
+              >
+                <PlusIcon size={16} />
+              </Button>
+            )}
 
             <div className="flex items-center gap-3">
               <span className="text-sm font-sans text-foreground tracking-tight underline underline-offset-2 ">
                 {session?.user?.username || "Anonymous"}
               </span>
+
               <img
-                src={session?.user?.avatar || "/default_avatar_light.png"}
+                src={session?.user?.avatar || session?.user?.image || "/default_avatar_light.png"}
                 alt="TV Owl"
                 className="h-10 w-10 object-contain drop-shadow-[0_0_4px_rgba(255,255,255,0.15)] rounded-full"
               />
