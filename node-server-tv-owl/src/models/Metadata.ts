@@ -4,9 +4,12 @@ export interface VideoMetadata extends Document {
     videoId: Types.ObjectId;
     userId: Types.ObjectId;
     title: string;
+    shortDescription: string;
     thumbnail: string;
     views: number;
+    duration: number;
     isPublished: boolean;
+    isUploaded: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -28,6 +31,10 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
             required: true,
             trim: true,
         },
+        shortDescription: {
+            type: String,
+            required: true,
+        },
         thumbnail: {
             type: String,
             required: true,
@@ -36,7 +43,15 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
             type: Number,
             default: 0,
         },
+        duration: {
+            type: Number,
+            required: true,
+        },
         isPublished: {
+            type: Boolean,
+            default: false,
+        },
+        isUploaded: {
             type: Boolean,
             default: false,
         },

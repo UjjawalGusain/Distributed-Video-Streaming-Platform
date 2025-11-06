@@ -1,7 +1,11 @@
 import { Request, Response } from 'express';
 import { success, failure, ApiResponse } from "../interfaces/Response";
 import { s3 } from "../utils/a3Multipart";
-import { S3_BUCKET } from '../config';
+import { S3_BUCKET, AWS_REGION } from '../config';
+import UserModel from '../models/User';
+import VideoModel from '../models/Video';
+import VideoMetadataModel from '../models/Metadata';
+import PreTranscodingQueue from '../external/sqsClient';
 
 interface startUploadResponse {
     uploadId: string;
@@ -15,13 +19,123 @@ interface completeUploadResponse {
     fileUrl: string;
 };
 
+interface submitVideoForPublishResponse {
+
+}
+
 class VideoController {
+
+    async submitVideoForPublish(req: Request, res: Response<ApiResponse<submitVideoForPublishResponse>>) {
+        const { userId, title, shortDescription, longDescription, tags, duration, originalVideoUrl } = req.body;
+
+        if (!userId) {
+            return res.status(400).json(failure(400, "No user id provided"));
+        }
+
+        const existingUser = await UserModel.findById(userId);
+        if (!existingUser) {
+            return res.status(404).json(failure(404, "Could not find user"));
+        }
+
+        if (!title) {
+            return res.status(400).json(failure(400, "No title provided for the video"));
+        }
+
+        if (!shortDescription) {
+            return res.status(400).json(failure(400, "No shortDescription provided for the video"));
+        }
+
+        if (!originalVideoUrl) {
+            return res.status(400).json(failure(400, "No originalVideoUrl provided for the video"));
+        }
+
+        if (!duration) {
+            return res.status(400).json(failure(400, "No duration provided for the video"));
+        }
+
+        // i should also check if video url is actually in the location we are tryig to find
+
+        const thumbnail: Express.Multer.File | undefined = req.file;
+        let thumbnailUrl: string | undefined;
+
+        if (thumbnail) {
+            const thumbnailFileName: string | undefined = `${Date.now()}_${thumbnail.originalname}`;
+            const fileType = thumbnail.mimetype;
+            const fileBuffer = thumbnail.buffer;
+
+            const params = {
+                Bucket: S3_BUCKET,
+                Key: `thumbnails/${thumbnailFileName}`,
+                ContentType: fileType,
+                Body: fileBuffer
+            };
+
+            try {
+                await s3.putObject(params).promise();
+                console.log(`File uploaded successfully to S3: ${thumbnailFileName}`);
+                thumbnailUrl = `https://${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/thumbnails/${thumbnailFileName}`;
+            } catch (err) {
+                console.error(`Error uploading file to S3: ${err}`);
+                return res.status(400).json(failure(400, `Could not upload the thumbnail: ${err}`));
+            }
+        }
+
+        const payloadVideo = {
+            userId,
+            ...(longDescription !== undefined && { longDescription }),
+            originalVideoUrl,
+        }
+
+        const newVideo = await VideoModel.create(payloadVideo);
+
+        if (!newVideo) {
+            return res.status(500).json(failure(400, `Could not create the new video`));
+        }
+
+        // console.log("newVideo: ", newVideo);
+
+
+        const payloadMetadata = {
+            videoId: newVideo._id,
+            userId,
+            title,
+            duration,
+            shortDescription,
+            ...(tags !== undefined && { tags }),
+            ...(thumbnailUrl !== undefined && { thumbnail: thumbnailUrl }),
+            isPublished: false,
+            isUploaded: true,
+        }
+
+        const newMetadata = await VideoMetadataModel.create(payloadMetadata);
+
+        if (!newMetadata) {
+            await VideoModel.deleteOne({ _id: newVideo._id }).catch(() => null);
+            return res
+                .status(500)
+                .json(failure(500, "Could not create video metadata"));
+        }
+
+        // console.log("newMetadata: ", newMetadata);
+
+        // now here I have to put it in sqs queue??
+        try {
+            PreTranscodingQueue.sendMessage(newVideo._id);
+        } catch (error) {
+            await VideoModel.deleteOne({ _id: newVideo._id }).catch(() => null);
+            await VideoMetadataModel.deleteOne({ _id: newMetadata._id }).catch(() => null);
+            return res.status(500).json(failure(500, `Could not push the new video too queue: ${error}`));
+        }
+
+        return res.status(200).json(success(200, {}, "Video submitted for publish"));
+    }
+
     async startUpload(req: Request, res: Response<ApiResponse<startUploadResponse>>) {
 
         const { fileName, fileType } = req.body;
         const params = {
             Bucket: S3_BUCKET,
-            Key: fileName,
+            Key: `original_videos/${fileName}`,
             ContentType: fileType,
         };
 
@@ -46,7 +160,7 @@ class VideoController {
 
         const params = {
             Bucket: S3_BUCKET,
-            Key: fileName,
+            Key: `original_videos/${fileName}`,
             PartNumber: partNumber,
             UploadId: uploadId,
             Body: Buffer.from(fileChunk, "base64"),
@@ -78,7 +192,7 @@ class VideoController {
 
         const params = {
             Bucket: S3_BUCKET,
-            Key: fileName,
+            Key: `original_videos/${fileName}`,
             UploadId: uploadId,
             MultipartUpload: {
                 Parts: parts,

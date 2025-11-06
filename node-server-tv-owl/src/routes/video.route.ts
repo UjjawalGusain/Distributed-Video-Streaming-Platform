@@ -1,6 +1,6 @@
 import {Router} from "express"
 import VideoController from "../controllers/video.controller";
-import { multerUpload } from "../middlewares/multer.middleware";
+import { multerUpload, thumbnailUpload } from "../middlewares/multer.middleware";
 
 const router = Router();
 router.post("/start-upload", VideoController.startUpload);
@@ -9,5 +9,6 @@ router.post("/part-upload",
     VideoController.partUpload
 );
 router.post("/complete-upload", VideoController.completeUpload);
+router.post("/submit-video", thumbnailUpload.single("thumbnail"), VideoController.submitVideoForPublish);
 
 export default router;

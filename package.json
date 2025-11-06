@@ -19,6 +19,9 @@
   "homepage": "https://github.com/UjjawalGusain/Distributed-Video-Streaming-Platform#readme",
   "description": "",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "@aws-sdk/client-sqs": "^3.925.0",
+    "@types/node": "^24.10.0",
+    "concurrently": "^9.2.1",
+    "typescript": "^5.9.3"
   }
 }

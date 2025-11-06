@@ -2,11 +2,10 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface Video extends Document {
     userId: Types.ObjectId;
-    shortDescription?: string;
     longDescription?: string;
+    originalVideoUrl?: string;
     formats: { resolution: string; url: string }[];
     tags?: string[];
-    duration: number;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -17,9 +16,6 @@ export const VideoSchema = new Schema<Video>({
         ref: "User",
         required: true,
     },
-    shortDescription: {
-        type: String,
-    },
     longDescription: {
         type: String,
     },
@@ -29,13 +25,12 @@ export const VideoSchema = new Schema<Video>({
             url: { type: String, required: true },
         },
     ],
+    originalVideoUrl: {
+        type: String
+    },
     tags: {
         type: [String],
         default: [],
-    },
-    duration: {
-        type: Number,
-        required: true,
     },
 },
     { timestamps: true }

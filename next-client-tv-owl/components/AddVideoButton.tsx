@@ -7,18 +7,40 @@ import { Button } from "./ui/button";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per part
 
-const AddVideo = () => {
-  const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [fileUrl, setFileUrl] = useState<string>("");
+type AddVideoProps = {
+  file: File | null;
+  fileUrl: string | null;
+  setFileUrl: React.Dispatch<React.SetStateAction<string>>;
+  uploading: boolean;
+  setUploading: React.Dispatch<React.SetStateAction<boolean>>;
+};
 
-  const handleDrop = (acceptedFiles: File[]) => {
-    if (acceptedFiles.length > 0) setFile(acceptedFiles[0]);
+const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading }: AddVideoProps) => {
+
+  const getVideoDuration = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement("video");
+      video.preload = "metadata";
+
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        const duration = video.duration;
+        resolve(duration);
+      };
+
+      video.onerror = () => reject("Error loading video metadata");
+
+      video.src = URL.createObjectURL(file);
+    });
   };
+
 
   const handleFileUpload = async () => {
     if (!file) return console.error("No file selected");
     setUploading(true);
+
+    const duration = await getVideoDuration(file);
+    console.log("Duration (s):", duration);
 
     const fileName = file.name;
     const fileType = file.type;
@@ -89,7 +111,7 @@ const AddVideo = () => {
         parts,
       });
 
-      setFileUrl(completeUploadResponse.data.fileUrl);
+      setFileUrl(completeUploadResponse.data.data.fileUrl);
       alert("Video uploaded successfully!");
     } catch (err) {
       console.error("Video upload failed:", err);
@@ -100,19 +122,7 @@ const AddVideo = () => {
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <Dropzone
-        accept={{ 'video/*': [] }}
-        maxFiles={1}
-        maxSize={1024 * 1024 * 1024} // 1 GB
-        minSize={1024 * 100} // 100 KB
-        onDrop={handleDrop}
-        onError={console.error}
-        src={file ? [file] : []}
-        className="w-full max-w-xl border border-dashed border-gray-500 p-4 rounded-lg"
-      >
-        <DropzoneEmptyState />
-        <DropzoneContent />
-      </Dropzone>
+
 
       <Button
         onClick={handleFileUpload}
@@ -127,7 +137,7 @@ const AddVideo = () => {
           href={fileUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue-500 underline mt-4"
+          className="text-white underline mt-4"
         >
           View Uploaded Video
         </a>
@@ -136,4 +146,4 @@ const AddVideo = () => {
   );
 };
 
-export default AddVideo;
+export default AddVideoButton;
