@@ -11,4 +11,17 @@ const sqsClient = new SQSClient({
 });
 
 const PreTranscodingQueue = new PreTranscodingService(sqsClient, SQS_QUEUE_URL);
+
+export async function pollQueue() {
+    console.log("Worker started: polling SQS for new messages...");
+    while (true) {
+        try {
+            await PreTranscodingQueue.receiveMessage();
+        } catch (err) {
+            console.error("Error while polling SQS:", err);
+        }
+        await new Promise((r) => setTimeout(r, 5000));
+    }
+}
+
 export default PreTranscodingQueue;

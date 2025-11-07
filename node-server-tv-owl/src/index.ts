@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
 import dbConnect from "./db/dbConnect";
+import { pollQueue } from "./external/sqsClient";
 
 import authRouter from "./routes/auth.route"
 import videoRouter from "./routes/video.route"
@@ -25,4 +26,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  pollQueue().catch((err) => console.error("Error polling SQS:", err));
 });

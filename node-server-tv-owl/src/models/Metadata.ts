@@ -37,7 +37,6 @@ export const VideoMetadataSchema = new Schema<VideoMetadata>(
         },
         thumbnail: {
             type: String,
-            required: true,
         },
         views: {
             type: Number,

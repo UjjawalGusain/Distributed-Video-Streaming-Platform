@@ -1,7 +1,13 @@
-import { SQSClient, SendMessageCommand, ReceiveMessageCommand } from "@aws-sdk/client-sqs";
+import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
+import TranscodingService from "./transcoder";
 
 class PreTranscodingService {
-    constructor(private sqsClient: SQSClient, private queueUrl: string) { }
+
+    private transcodingService: TranscodingService;
+
+    constructor(private sqsClient: SQSClient, private queueUrl: string) {
+        this.transcodingService = new TranscodingService();
+    }
 
     sendMessage = async (videoId: string) => {
         try {
@@ -28,6 +34,7 @@ class PreTranscodingService {
                 QueueUrl: this.queueUrl,
                 MaxNumberOfMessages: 1,
                 VisibilityTimeout: 30,
+                MessageAttributeNames: ["All"], 
             };
             const response = await this.sqsClient.send(new ReceiveMessageCommand(params));
 
@@ -39,15 +46,19 @@ class PreTranscodingService {
             if (response.Messages) {
                 const message = response.Messages[0];
                 console.log("Received message:", message.Body);
+                console.log("message: ", message);
 
-                const videoId = message.MessageAttributes?.videoId?.StringValue ?? "unknown";
+                const videoId = message.MessageAttributes?.videoId?.StringValue;
+                if(!videoId) {
+                    throw new Error("Undefined video id");
+                }
                 console.log("Video ID:", videoId);
 
                 // here we will process message
                 this.processMessage(videoId);
 
                 // here we will delete message
-               this.deleteMessage(); 
+               this.deleteMessage(message.ReceiptHandle!); 
 
                 return response;
 
@@ -60,20 +71,27 @@ class PreTranscodingService {
     };
 
     processMessage = async (videoId: string) => {
+        try {
+            console.log(`Starting processing for videoId: ${videoId}`);
+            await this.transcodingService.transcodeVideo(videoId);
+            console.log(`Completed processing for videoId: ${videoId}`);
+        } catch (error) {
+            console.error(`Error processing videoId ${videoId}:`, error);
+        }
+    };
 
-        const delay = Math.random() * 10000;
-        setTimeout(() => {
-            console.log(`We now have a delay of ${delay/1000} secs for videoId: ${videoId}`);
-        }, delay);
-    }
-
-    deleteMessage = async () => {
-
-        const delay = Math.random() * 10000;
-        setTimeout(() => {
-            console.log(`We will now delete with delay ${delay/1000} secs}`);
-        }, delay);
-    }
+    deleteMessage = async (receiptHandle: string) => {
+        try {
+            const params = {
+                QueueUrl: this.queueUrl,
+                ReceiptHandle: receiptHandle
+            };
+            await this.sqsClient.send(new DeleteMessageCommand(params));
+            console.log("Message deleted from SQS queue");
+        } catch (error) {
+            console.error("Error deleting message:", error);
+        }
+    };
 };
 
 export default PreTranscodingService;

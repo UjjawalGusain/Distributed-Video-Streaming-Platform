@@ -8,4 +8,4 @@ AWS.config.update({
   region: AWS_REGION,
 });
 
-export const s3 = new AWS.S3();
+export const s3 = new AWS.S3({ region: AWS_REGION });
