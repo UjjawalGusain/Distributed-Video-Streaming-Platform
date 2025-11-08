@@ -10,6 +10,7 @@ router.post("/part-upload",
 );
 router.post("/complete-upload", VideoController.completeUpload);
 router.post("/submit-video", thumbnailUpload.single("thumbnail"), VideoController.submitVideoForPublish);
-router.post("/", VideoController.getVideo);
+router.get("/:videoId", VideoController.getVideo);
+router.patch("/publish-formats", VideoController.addVideoUrl)
 
 export default router;

@@ -31,15 +31,38 @@ interface getVideoResponse {
 
 class VideoController {
 
+    async addVideoUrl(req: Request, res: Response<ApiResponse<getVideoResponse>>) {
+        try {
+            const { videoId, formats, masterPlaylistUrl } = req.body;
+
+            const result = await VideoModel.updateOne(
+                { _id: videoId },
+                { $set: { formats, masterPlaylistUrl } }
+            );
+
+            if (result.matchedCount === 0) {
+                return res.status(404).json(failure(404, "Video not found"));
+            }
+
+            return res
+                .status(200)
+                .json(success(200, { modifiedCount: result.modifiedCount }, "Video format updated successfully"));
+        } catch (err) {
+            console.error("Error updating video URLs:", err);
+            return res.status(500).json(failure(500, "Internal server error"));
+        }
+    }
+
+
     async getVideo(req: Request, res: Response<ApiResponse<getVideoResponse>>) {
-        const { videoId } = req.body;
+        const { videoId } = req.params;
 
         const existingVideo = await VideoModel.findById(videoId);
         if (!existingVideo) {
             return res.status(404).json(failure(404, "Could not find video"));
         }
 
-        const {_id, ...existingVideoWithoutId} = existingVideo.toObject();
+        const { _id, ...existingVideoWithoutId } = existingVideo.toObject();
 
         const payload = {
             id: _id,
@@ -146,9 +169,9 @@ class VideoController {
         try {
             console.log("video id: ", newVideo._id);
             console.log("api: ", APIS.PRETRANSCODER_QUEUE_SEND)
-            const response = await axios.post(APIS.PRETRANSCODER_QUEUE_SEND, {videoId: newVideo._id.toString()});
+            const response = await axios.post(APIS.PRETRANSCODER_QUEUE_SEND, { videoId: newVideo._id.toString() });
             console.log("Transcoder response: ", response.data);
-            
+
         } catch (error) {
             await VideoModel.deleteOne({ _id: newVideo._id }).catch(() => null);
             await VideoMetadataModel.deleteOne({ _id: newMetadata._id }).catch(() => null);

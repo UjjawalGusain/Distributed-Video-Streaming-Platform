@@ -2,6 +2,7 @@ import {Router} from "express"
 import VideoMetadataController from "../controllers/videoMetadata.controller";
 
 const router = Router();
-router.post("/", VideoMetadataController.getVideoMetadata);
+router.get("/:videoId", VideoMetadataController.getVideoMetadata);
+router.patch("/mark-metadata-publish", VideoMetadataController.updatePublishVideo);
 
 export default router;

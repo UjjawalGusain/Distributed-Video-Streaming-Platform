@@ -1,13 +1,16 @@
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
 import { pipeline } from "stream/promises";
-import { AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../config"
+import { AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY, S3_BUCKET } from "../config"
 import path from "path";
 import { exec } from "child_process";
 import util from "util";
+import * as fsPromise from 'fs/promises';
 import fs from "fs";
 import axios from "axios";
 import APIS from "../apis";
+import { uploadVideoFileToS3, uploadThumbnailToS3 } from "../utils/uploadFileToS3";
+
 
 interface Resolution {
     res: number;
@@ -98,14 +101,13 @@ class TranscodingService {
         try {
             fs.mkdirSync(normalizedOutputDir, { recursive: true });
 
+            // video height
             const commandGetHeight = `ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "${normalizedVideoPath}"`;
-
-            const { stdout: heightStr } = await this.execPromise(
-                commandGetHeight
-            );
+            const { stdout: heightStr } = await this.execPromise(commandGetHeight);
             const height = parseInt(heightStr.trim(), 10);
             console.log(`Video height detected: ${height}`);
 
+            const formats: { resolution: string; name: string; }[] = [];
 
             for (const r of this.allowedRenditions) {
                 if (height >= r.res) {
@@ -126,34 +128,57 @@ class TranscodingService {
                     console.log(`\nStarting ${r.res}p transcoding...`);
                     await this.execPromise(commandCreateSegmentsForResolution);
                     console.log(`Generated: ${outputM3U8}`);
+
+                    formats.push({
+                        resolution: `${r.res}p`,
+                        name: `${r.res}p.m3u8`,
+                    });
                 } else {
                     console.log(`Skipping ${r.res}p — input resolution too low`);
                 }
             }
+
+            // master playlist
+            const masterPlaylistPath = path.join(normalizedOutputDir, "master.m3u8");
+            let masterPlaylistContent = "#EXTM3U\n";
+
+            for (const r of this.allowedRenditions) {
+                if (height >= r.res) {
+                    const bandwidth = parseInt(r.bitrate) * 1000;
+                    masterPlaylistContent += `#EXT-X-STREAM-INF:BANDWIDTH=${bandwidth},RESOLUTION=1280x${r.res}\n${r.res}p.m3u8\n`;
+                }
+            }
+
+            fs.writeFileSync(masterPlaylistPath, masterPlaylistContent);
+            console.log(`Master playlist created: ${masterPlaylistPath}`);
+
+            const masterPlaylistName = "master.m3u8";
+
+            return {
+                videoJustName,
+                formats,
+                masterPlaylistName,
+            };
         } catch (err) {
             console.error("Transcoding failed:", err);
+            throw err;
         }
-        return videoJustName;
     };
+
 
     transcodeVideo = async (videoId: string) => {
 
         try {
 
-            const videoResponse = await axios.post(APIS.GET_VIDEO, { videoId });
-            if(!videoResponse || videoResponse.data.success == false) {
+            const videoResponse = await axios.get(`${APIS.GET_VIDEO}/${videoId}`);
+            if (!videoResponse || videoResponse.data.success == false) {
                 throw new Error("Video not found during transcoding")
             }
-            console.log("We have a video response: ", videoResponse);
-            
+
             const existingVideo = videoResponse.data.data;
 
-            const videoMetadataResponse = await axios.post(APIS.GET_VIDEO_METADATA, { videoId });
+            const videoMetadataResponse = await axios.get(`${APIS.GET_VIDEO_METADATA}/${videoId}`);
             const existingVideoMetadata = videoMetadataResponse.data.data;
-
-            console.log("Existing video: ", existingVideo);
-            
-            console.log("Existing video metadata: ", existingVideoMetadata);
 
             if (!existingVideoMetadata.isUploaded) {
                 throw new Error("Video is not uploaded till now");
@@ -175,25 +200,48 @@ class TranscodingService {
             }
 
             // ffmpeg transcode command
-            const videoName = this.transcodeToHLS(downloadedVideoName);
-            console.log("Video name: ", videoName);
+            const { videoJustName, formats, masterPlaylistName } = await this.transcodeToHLS(downloadedVideoName);
+            if (formats.length === 0) {
+                throw new Error("Video is too low quality. The video should be atleast 480p");
+            }
+            console.log("Video name: ", videoJustName);
 
 
             // aws put transcoded videos in bucket transcoded_videos folder
+            const currentVideoTranscodedFolder = path.join(this.transcoderOutputPath, videoJustName);
+            const files = await fsPromise.readdir(currentVideoTranscodedFolder);
+            await Promise.all(
+                files.map(file => {
+                    const currentFilePath = path.join(currentVideoTranscodedFolder, file);
+                    return uploadVideoFileToS3(existingVideo.userId, videoId, currentFilePath);
+                })
+            );
 
-            // aws put generate thumbnail in bucket thumbnails fodler
+            const transcoderFolderUrl = `https://${S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/transcoded_videos/${existingVideo.userId}/${videoId}`;
 
-            // update thumbnail in videoMetadat
+            let thumbnailUrl: string | undefined;
+            if (!existingVideoMetadata.thumbnail && ffmpegGeneratedThumbnailPath) {
+                thumbnailUrl = await uploadThumbnailToS3(ffmpegGeneratedThumbnailPath, videoId);
+            }
 
-            // update the whole video
+            const formatsWithUrl = formats.map(f => ({
+                resolution: f.resolution,
+                url: `${transcoderFolderUrl}/${f.name}`,
+            }));
+
+            const masterPlaylistUrl = `${transcoderFolderUrl}/${masterPlaylistName}`;
+
+            await axios.patch(APIS.PUBLISH_VIDEO_FORMATS, { videoId, formats: formatsWithUrl, masterPlaylistUrl });
+            const payload: { videoId: string; thumbnail?: string } = { videoId };
+            if (thumbnailUrl) payload.thumbnail = thumbnailUrl;
+
+            await axios.patch(APIS.MARK_VIDEO_PUBLISHED, payload);
 
         } catch (error) {
             console.error("Error in transcoding the video: ", error);
+            throw new Error(`Error while transcoding the video: ${error}`);
         }
-
-
     }
-
 };
 
 export default TranscodingService;

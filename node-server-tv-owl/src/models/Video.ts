@@ -5,6 +5,7 @@ export interface Video extends Document {
     longDescription?: string;
     originalVideoUrl?: string;
     formats: { resolution: string; url: string }[];
+    masterPlaylistUrl: string;
     tags?: string[];
     createdAt: Date;
     updatedAt: Date;
@@ -25,6 +26,9 @@ export const VideoSchema = new Schema<Video>({
             url: { type: String, required: true },
         },
     ],
+    masterPlaylistUrl: {
+        type: String,
+    },
     originalVideoUrl: {
         type: String
     },

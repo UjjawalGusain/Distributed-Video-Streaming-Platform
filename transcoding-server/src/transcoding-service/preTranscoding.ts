@@ -46,7 +46,6 @@ class PreTranscodingService {
             if (response.Messages) {
                 const message = response.Messages[0];
                 console.log("Received message:", message.Body);
-                console.log("message: ", message);
 
                 const videoId = message.MessageAttributes?.videoId?.StringValue;
                 if(!videoId) {
