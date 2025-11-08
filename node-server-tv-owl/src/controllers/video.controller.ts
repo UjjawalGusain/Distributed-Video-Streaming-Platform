@@ -184,9 +184,10 @@ class VideoController {
     async startUpload(req: Request, res: Response<ApiResponse<startUploadResponse>>) {
 
         const { fileName, fileType } = req.body;
+        const timestampedFileName = `${Date.now()}_${fileName}`;
         const params = {
             Bucket: S3_BUCKET,
-            Key: `original_videos/${fileName}`,
+            Key: `original_videos/${timestampedFileName}`,
             ContentType: fileType,
         };
 
@@ -199,6 +200,7 @@ class VideoController {
 
             const payload = {
                 uploadId: upload.UploadId,
+                fileName: timestampedFileName,
             }
             return res.status(200).json(success(200, payload, "Upload started successfully"));
         } catch (error) {
@@ -208,7 +210,8 @@ class VideoController {
 
     async partUpload(req: Request, res: Response<ApiResponse<partUploadResponse>>) {
         const { fileName, partNumber, uploadId, fileChunk } = req.body;
-
+        console.log("filename: ", `original_videos/${fileName}`);
+        
         const params = {
             Bucket: S3_BUCKET,
             Key: `original_videos/${fileName}`,

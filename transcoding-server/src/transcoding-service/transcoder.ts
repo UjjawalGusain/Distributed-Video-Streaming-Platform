@@ -79,7 +79,13 @@ class TranscodingService {
         const thumbnailName = path.parse(downloadedVideoFileName).name + ".jpg";
         const thumbnailPath = path.join(this.transcoderThumbnailPath, thumbnailName);
         fs.mkdirSync(this.transcoderThumbnailPath, { recursive: true });
+
+        if (fs.existsSync(thumbnailPath)) {
+            console.log(`Thumbnail already exists at ${thumbnailPath}, skipping generation.`);
+            return thumbnailPath;
+        }
         const command = `ffmpeg -ss 1 -i "${downloadedVideoPath}" -frames:v 1 -q:v 2 -update 1 "${thumbnailPath}"`;
+        console.log("We will be running the command: ", command);
 
         try {
             await this.execPromise(command);
@@ -100,6 +106,8 @@ class TranscodingService {
 
         try {
             fs.mkdirSync(normalizedOutputDir, { recursive: true });
+            console.log("transcodeToHLS started");
+
 
             // video height
             const commandGetHeight = `ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 "${normalizedVideoPath}"`;
@@ -169,6 +177,7 @@ class TranscodingService {
     transcodeVideo = async (videoId: string) => {
 
         try {
+            console.log("Reached transcode video");
 
             const videoResponse = await axios.get(`${APIS.GET_VIDEO}/${videoId}`);
             if (!videoResponse || videoResponse.data.success == false) {
@@ -192,15 +201,25 @@ class TranscodingService {
             const downloadedVideoName = await this.downloadVideoFromS3(originalVideoUrl);
 
             let ffmpegGeneratedThumbnailPath: string | undefined;
+            console.log("existingVideoMetadata: ", existingVideoMetadata);
+
             if (!existingVideoMetadata.thumbnail) {
                 ffmpegGeneratedThumbnailPath = await this.generateThumbnail(downloadedVideoName);
+                console.log("Maybe the issue was here: ", ffmpegGeneratedThumbnailPath);
+
                 if (!ffmpegGeneratedThumbnailPath) {
                     throw new Error("Cannot generate thumbnail for your video");
                 }
             }
 
             // ffmpeg transcode command
+            console.log("We will be going to transcodeToHLS now");
+
             const { videoJustName, formats, masterPlaylistName } = await this.transcodeToHLS(downloadedVideoName);
+            console.log("videoJustName: ", videoJustName);
+            console.log("formats: ", formats);
+            console.log("masterPlaylistName: ", masterPlaylistName);
+
             if (formats.length === 0) {
                 throw new Error("Video is too low quality. The video should be atleast 480p");
             }

@@ -53,9 +53,12 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading }: 
         fileName,
         fileType,
       });
-
+      console.log("startUploadResponse.data.data: ", startUploadResponse.data.data);
+      
       uploadId = startUploadResponse.data.data.uploadId;
-
+      const updatedFilename = startUploadResponse.data.data.fileName;
+      console.log("updatedFilename: ", updatedFilename);
+      
       // Step 2: Split file and upload parts
       const totalParts = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -82,7 +85,7 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading }: 
               const uploadPartResponse = await axios.post(
                 "http://localhost:5000/api/video/part-upload",
                 {
-                  fileName,
+                  fileName: updatedFilename,
                   partNumber,
                   uploadId,
                   fileChunk: base64Chunk,
@@ -106,7 +109,7 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading }: 
 
       // Step 3: Complete multipart upload
       const completeUploadResponse = await axios.post("http://localhost:5000/api/video/complete-upload", {
-        fileName,
+        fileName: updatedFilename,
         uploadId,
         parts,
       });
