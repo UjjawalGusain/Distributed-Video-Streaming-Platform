@@ -1,13 +1,13 @@
-import VideoModel from "../models/Video"
-import VideoMetadataModel from "../models/Metadata"
 import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { createWriteStream } from "fs";
 import { pipeline } from "stream/promises";
-import { AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../config";
+import { AWS_REGION, AWS_ACCESS_KEY, AWS_SECRET_KEY } from "../config"
 import path from "path";
 import { exec } from "child_process";
 import util from "util";
 import fs from "fs";
+import axios from "axios";
+import APIS from "../apis";
 
 interface Resolution {
     res: number;
@@ -25,9 +25,9 @@ class TranscodingService {
     private execPromise: (command: string) => Promise<{ stdout: string; stderr: string }>;
 
     constructor() {
-        this.transcoderInputPath = path.join(process.cwd(), "uploads", "input");
-        this.transcoderOutputPath = path.join(process.cwd(), "transcodedOutputs");
-        this.transcoderThumbnailPath = path.join(process.cwd(), "thumbnails");
+        this.transcoderInputPath = path.join(process.cwd(), "temp", "uploads", "input");
+        this.transcoderOutputPath = path.join(process.cwd(), "temp", "transcodedOutputs");
+        this.transcoderThumbnailPath = path.join(process.cwd(), "temp", "thumbnails");
         this.execPromise = util.promisify(exec);
         this.allowedRenditions = [
             { res: 1080, bitrate: "5000k", audioBitrate: "128k" },
@@ -138,35 +138,37 @@ class TranscodingService {
 
     transcodeVideo = async (videoId: string) => {
 
-        const existingVideo = await VideoModel.findById(videoId);
-        if (!existingVideo) {
-            throw new Error("Did not find existing video during transcoding");
-        }
-
-        if (!existingVideo.originalVideoUrl) {
-            throw new Error("Did not find original video url");
-        }
-
-        const videoMetadata = await VideoMetadataModel.findOne({ videoId });
-        if (!videoMetadata) {
-            throw new Error("Did not find existing video's metadata");
-        }
-
-        if (!videoMetadata.isUploaded) {
-            throw new Error("Video is not uploaded till now");
-        }
-
-        if (videoMetadata.isPublished) {
-            throw new Error("Video is already published.");
-        }
-
         try {
+
+            const videoResponse = await axios.post(APIS.GET_VIDEO, { videoId });
+            if(!videoResponse || videoResponse.data.success == false) {
+                throw new Error("Video not found during transcoding")
+            }
+            console.log("We have a video response: ", videoResponse);
+            
+            const existingVideo = videoResponse.data.data;
+
+            const videoMetadataResponse = await axios.post(APIS.GET_VIDEO_METADATA, { videoId });
+            const existingVideoMetadata = videoMetadataResponse.data.data;
+
+            console.log("Existing video: ", existingVideo);
+            
+            console.log("Existing video metadata: ", existingVideoMetadata);
+
+            if (!existingVideoMetadata.isUploaded) {
+                throw new Error("Video is not uploaded till now");
+            }
+
+            if (existingVideoMetadata.isPublished) {
+                throw new Error("Video is already published.");
+            }
+
             const originalVideoUrl = existingVideo.originalVideoUrl;
             const downloadedVideoName = await this.downloadVideoFromS3(originalVideoUrl);
 
             let ffmpegGeneratedThumbnailPath: string | undefined;
-            if (!videoMetadata.thumbnail) {
-                ffmpegGeneratedThumbnailPath = await this.generateThumbnail(downloadedVideoName);                
+            if (!existingVideoMetadata.thumbnail) {
+                ffmpegGeneratedThumbnailPath = await this.generateThumbnail(downloadedVideoName);
                 if (!ffmpegGeneratedThumbnailPath) {
                     throw new Error("Cannot generate thumbnail for your video");
                 }
@@ -175,7 +177,7 @@ class TranscodingService {
             // ffmpeg transcode command
             const videoName = this.transcodeToHLS(downloadedVideoName);
             console.log("Video name: ", videoName);
-            
+
 
             // aws put transcoded videos in bucket transcoded_videos folder
 

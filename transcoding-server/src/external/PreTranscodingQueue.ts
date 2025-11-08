@@ -1,6 +1,6 @@
 import { SQSClient } from "@aws-sdk/client-sqs";
-import { AWS_REGION, AWS_SECRET_KEY, AWS_ACCESS_KEY, SQS_QUEUE_URL } from "../config";
-import PreTranscodingService from "../services/preTranscoding";
+import { AWS_REGION, AWS_SECRET_KEY, AWS_ACCESS_KEY, SQS_PRETRANSCODING_QUEUE_URL } from "../config";
+import PreTranscodingService from "../transcoding-service/preTranscoding";
 
 const sqsClient = new SQSClient({
     region: AWS_REGION,
@@ -10,7 +10,7 @@ const sqsClient = new SQSClient({
     }
 });
 
-const PreTranscodingQueue = new PreTranscodingService(sqsClient, SQS_QUEUE_URL);
+const PreTranscodingQueue = new PreTranscodingService(sqsClient, SQS_PRETRANSCODING_QUEUE_URL);
 
 export async function pollQueue() {
     console.log("Worker started: polling SQS for new messages...");

@@ -5,7 +5,9 @@ import { S3_BUCKET, AWS_REGION } from '../config';
 import UserModel from '../models/User';
 import VideoModel from '../models/Video';
 import VideoMetadataModel from '../models/Metadata';
-import PreTranscodingQueue from '../external/sqsClient';
+import axios from "axios";
+import APIS from '../apis';
+// import PreTranscodingQueue from '../external/PreTranscodingQueue';
 
 interface startUploadResponse {
     uploadId: string;
@@ -23,7 +25,29 @@ interface submitVideoForPublishResponse {
 
 }
 
+interface getVideoResponse {
+
+}
+
 class VideoController {
+
+    async getVideo(req: Request, res: Response<ApiResponse<getVideoResponse>>) {
+        const { videoId } = req.body;
+
+        const existingVideo = await VideoModel.findById(videoId);
+        if (!existingVideo) {
+            return res.status(404).json(failure(404, "Could not find video"));
+        }
+
+        const {_id, ...existingVideoWithoutId} = existingVideo.toObject();
+
+        const payload = {
+            id: _id,
+            ...existingVideoWithoutId,
+        }
+
+        return res.status(200).json(success(200, payload, "Get video successful"));
+    }
 
     async submitVideoForPublish(req: Request, res: Response<ApiResponse<submitVideoForPublishResponse>>) {
         const { userId, title, shortDescription, longDescription, tags, duration, originalVideoUrl } = req.body;
@@ -120,7 +144,11 @@ class VideoController {
 
         // now here I have to put it in sqs queue??
         try {
-            PreTranscodingQueue.sendMessage(newVideo._id);
+            console.log("video id: ", newVideo._id);
+            console.log("api: ", APIS.PRETRANSCODER_QUEUE_SEND)
+            const response = await axios.post(APIS.PRETRANSCODER_QUEUE_SEND, {videoId: newVideo._id.toString()});
+            console.log("Transcoder response: ", response.data);
+            
         } catch (error) {
             await VideoModel.deleteOne({ _id: newVideo._id }).catch(() => null);
             await VideoMetadataModel.deleteOne({ _id: newMetadata._id }).catch(() => null);
