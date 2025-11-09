@@ -173,6 +173,29 @@ class TranscodingService {
         }
     };
 
+    removeTemporaryFiles = async (
+        thumbnailPath?: string,
+        transcodedOutputPath?: string
+    ) => {
+        try {
+            if (thumbnailPath && fs.existsSync(thumbnailPath)) {
+                await fsPromise.rm(thumbnailPath, { recursive: true, force: true });
+                console.log("Thumbnail removed from temp");
+            }
+        } catch (err) {
+            console.error("Failed to remove thumbnail:", err);
+        }
+
+        try {
+            if (transcodedOutputPath && fs.existsSync(transcodedOutputPath)) {
+                await fsPromise.rm(transcodedOutputPath, { recursive: true, force: true });
+                console.log("Transcoded output removed from temp");
+            }
+        } catch (err) {
+            console.error("Failed to remove transcoded output:", err);
+        }
+    };
+
 
     transcodeVideo = async (videoId: string) => {
 
@@ -230,9 +253,9 @@ class TranscodingService {
             const currentVideoTranscodedFolder = path.join(this.transcoderOutputPath, videoJustName);
             const files = await fsPromise.readdir(currentVideoTranscodedFolder);
             await Promise.all(
-                files.map(file => {
+                files.map(async (file) => {
                     const currentFilePath = path.join(currentVideoTranscodedFolder, file);
-                    return uploadVideoFileToS3(existingVideo.userId, videoId, currentFilePath);
+                    await uploadVideoFileToS3(existingVideo.userId, videoId, currentFilePath);
                 })
             );
 
@@ -255,6 +278,8 @@ class TranscodingService {
             if (thumbnailUrl) payload.thumbnail = thumbnailUrl;
 
             await axios.patch(APIS.MARK_VIDEO_PUBLISHED, payload);
+
+            await this.removeTemporaryFiles(ffmpegGeneratedThumbnailPath, currentVideoTranscodedFolder)
 
         } catch (error) {
             console.error("Error in transcoding the video: ", error);
