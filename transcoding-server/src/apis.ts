@@ -1,10 +1,10 @@
 const SERVER_BASE_URL = "http://localhost:5000/api";
+const COMPLETION_HANDLER_BASE_URL = "http://localhost:5002/api"
 
 const APIS = {
     GET_VIDEO: `${SERVER_BASE_URL}/video`,
     GET_VIDEO_METADATA: `${SERVER_BASE_URL}/video-metadata`,
-    PUBLISH_VIDEO_FORMATS: `${SERVER_BASE_URL}/video/publish-formats`,
-    MARK_VIDEO_PUBLISHED: `${SERVER_BASE_URL}/video-metadata/mark-metadata-publish`,
+    SEND_TO_COMPLETION_QUEUE: `${COMPLETION_HANDLER_BASE_URL}/completion-handler/add-to-completion-queue`
 }
 
 export default APIS;

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev --prefix next-client-tv-owl\" \"npm run dev --prefix node-server-tv-owl\" \"npm run dev --prefix transcoding-server\"",
+    "dev": "concurrently \"npm run dev --prefix next-client-tv-owl\" \"npm run dev --prefix node-server-tv-owl\" \"npm run dev --prefix transcoding-server\" \"npm run dev --prefix completion-handler-server\"",
     "build": "concurrently \"npm run build --prefix next-client-tv-owl\" \"npm run build --prefix node-server-tv-owl\"",
     "start": "concurrently \"npm run start --prefix next-client-tv-owl\" \"npm run start --prefix node-server-tv-owl\""
   },

@@ -2,10 +2,28 @@ import { Request, Response } from 'express';
 import { success, failure, ApiResponse } from "../interfaces/Response";
 import UserModel from '../models/User';
 import VideoMetadataModel from '../models/Metadata';
+import recommendationService from '../services/recommendationService';
+import trendingVideoService from '../services/trendingVideoService';
 
 interface getVideoMetadataResponse {
 
 }
+
+export interface VideoMetadata {
+  _id: string;
+  videoId: string;
+  userId: string;
+  title: string;
+  shortDescription: string;
+  thumbnail?: string;
+  views: number;
+  duration: number;
+  isPublished: boolean;
+  isUploaded: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 
 class VideoMetadataController {
 
@@ -13,7 +31,7 @@ class VideoMetadataController {
         try {
             const { videoId, thumbnail } = req.body;
 
-            const updateFields: {isPublished: boolean; thumbnail?: string;} = {
+            const updateFields: { isPublished: boolean; thumbnail?: string; } = {
                 isPublished: true
             };
 
@@ -55,6 +73,26 @@ class VideoMetadataController {
         }
 
         return res.status(200).json(success(200, payload, "Get video metadata successful"));
+    }
+
+    async getUserFeed(req: Request, res: Response) {
+        
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const userWithSession = req.user;
+        const userId = userWithSession?.id;
+
+        let videos: any[];
+        if(!userWithSession || !userId) {
+            videos = await trendingVideoService.getTrendingVideos(limit, page);
+        } else {
+            videos = await recommendationService.getRecommendedVideos(userId, limit, page);
+        }
+        const payload = {
+            videos,
+        }
+
+        return res.status(200).json(success(200, payload, "Get videos metadata successful"));
     }
 
 

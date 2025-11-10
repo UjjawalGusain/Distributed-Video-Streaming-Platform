@@ -20,6 +20,7 @@ import SignInButton from '@/components/SignInButton';
 import SignOutButton from '@/components/SignOutButton';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   searchPlaceholder?: string;
@@ -33,11 +34,11 @@ export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   }>;
   onSearchChange?: (value: string) => void;
   onLayoutClick?: () => void;
-  onAddClick?: () => void;
+  onAddClickWithLoggedIn?: () => void;
   onInfoItemClick?: (item: string) => void;
   onNotificationClick?: (notificationId: string) => void;
   onSettingsItemClick?: (item: string) => void;
-  addLink?: string;
+  addLink: string;
 }
 
 export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
@@ -49,7 +50,6 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       notifications,
       onSearchChange,
       onLayoutClick,
-      onAddClick,
       onInfoItemClick,
       onNotificationClick,
       onSettingsItemClick,
@@ -61,6 +61,10 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     const id = useId();
     const { data: session } = useSession();
     const { theme, setTheme } = useTheme();
+
+    const onAddClickWithoutSignedIn = () => {
+      toast("Sign in first to publish videos");
+    }
 
     return (
       <header
@@ -138,7 +142,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
             <SettingsMenu onItemClick={onSettingsItemClick} />
 
             {/* Add */}
-            {addLink ? (
+            {session?.user ? (
               <Link href={addLink}>
                 <Button
                   size="icon"
@@ -155,7 +159,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 variant="default"
                 className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md"
                 aria-label="Add"
-                onClick={onAddClick}
+                onClick={onAddClickWithoutSignedIn}
               >
                 <PlusIcon size={16} />
               </Button>

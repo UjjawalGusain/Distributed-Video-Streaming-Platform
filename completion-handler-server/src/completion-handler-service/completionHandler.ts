@@ -7,7 +7,7 @@ export interface CompletionMessageInterface {
     formats: {
         resolution: string;
         url: string;
-    };
+    }[];
     masterPlaylistUrl: string;
     thumbnail?: string;
 };

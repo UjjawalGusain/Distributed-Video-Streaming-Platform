@@ -272,12 +272,14 @@ class TranscodingService {
             }));
 
             const masterPlaylistUrl = `${transcoderFolderUrl}/${masterPlaylistName}`;
+            const completionObjectPayload: {videoId: string, formats: {resolution: string, url: string}[], masterPlaylistUrl: string, thumbnail?: string} = {
+                videoId,
+                formats: formatsWithUrl,
+                masterPlaylistUrl,
+            }
+            if(thumbnailUrl) completionObjectPayload.thumbnail = thumbnailUrl;
 
-            await axios.patch(APIS.PUBLISH_VIDEO_FORMATS, { videoId, formats: formatsWithUrl, masterPlaylistUrl });
-            const payload: { videoId: string; thumbnail?: string } = { videoId };
-            if (thumbnailUrl) payload.thumbnail = thumbnailUrl;
-
-            await axios.patch(APIS.MARK_VIDEO_PUBLISHED, payload);
+            await axios.post(APIS.SEND_TO_COMPLETION_QUEUE, completionObjectPayload);
 
             await this.removeTemporaryFiles(ffmpegGeneratedThumbnailPath, currentVideoTranscodedFolder)
 
