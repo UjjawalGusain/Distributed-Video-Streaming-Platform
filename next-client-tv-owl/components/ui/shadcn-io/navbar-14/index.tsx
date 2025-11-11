@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useId } from 'react';
+import { useId, useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   LayoutGridIcon,
@@ -54,6 +54,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       onNotificationClick,
       onSettingsItemClick,
       addLink,
+      children,
       ...props
     },
     ref
@@ -61,6 +62,10 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     const id = useId();
     const { data: session } = useSession();
     const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => setMounted(true), [])
+    if (!mounted) return null
 
     const onAddClickWithoutSignedIn = () => {
       toast("Sign in first to publish videos");
@@ -70,14 +75,17 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       <header
         ref={ref}
         className={cn(
-          'border-b border-border/50 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-md px-4 md:px-8 transition-colors duration-300',
+          'border-b border-border/50 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-md px-2 md:px-4 transition-colors duration-300',
           className
         )}
         {...props}
       >
         <div className="flex h-16 items-center justify-between gap-4">
+
           {/* Left */}
           <div className="flex items-center gap-3">
+            {children}
+
             <span className="text-xl font-semibold text-foreground tracking-tight hover:text-primary transition-colors">
               TV Owl
             </span>
