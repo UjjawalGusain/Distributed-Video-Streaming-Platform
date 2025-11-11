@@ -21,7 +21,27 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-export default function CardPost() {
+interface CardPostProps {
+  title: string;
+  shortDescription: string;
+  thumbnail: string;
+  views: number;
+  duration: number;
+  updatedAt: string;
+  username: string;
+  avatar: string;
+}
+
+export default function CardPost({
+  title,
+  shortDescription,
+  thumbnail,
+  views,
+  duration,
+  updatedAt,
+  username,
+  avatar,
+}: CardPostProps) {
   return (
     <Card className="w-full max-w-xl md:max-w-96 min-w-60 lg:min-w-72 flex-1 shrink shadow-none py-0 gap-0 rounded-md">
       {/* <CardHeader className="flex flex-row items-center justify-between py-2.5 -mr-1">
@@ -48,24 +68,32 @@ export default function CardPost() {
       </CardHeader> */}
       <CardContent className="p-0">
 
-        <div className="relative aspect-video bg-muted rounded-md" />
-        <div className="py-5 px-2 flex justify-start items-start gap-2">
+        <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
+          <Image
+            src={thumbnail}
+            alt={title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 50vw"
+          />
+        </div>
+        <div className="py-5 px-2 flex justify-start items-start gap-2 ">
           <ItemMedia>
             <Image
-              src="https://github.com/shadcn.png"
-              className="h-9 w-9 rounded-full bg-secondary object-contain"
+              src={avatar}
+              className="h-9 w-9 rounded-full bg-secondary object-contain border"
               alt=""
               height={32}
               width={32}
             />
           </ItemMedia>
-          <div><h3 className="font-semibold">Exploring New Horizons</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Low Level <br />
-              <span className="text-ellipsis">This video is about low level programming guys and here we are going to  <br /></span>
-              <span className="text-blue-500">#Wanderlust</span>{" "}
-              <span className="text-blue-500">#NatureLovers</span>
-            </p>
+          <div><h2 className="font-semibold text-md">{title}</h2>
+            <div className="mt-1 text-sm">
+              {username} <br />
+              <p className="truncate w-72 text-muted-foreground">{shortDescription}<br /></p>
+              <span className="text-muted-foreground">{views} views</span>
+
+            </div>
           </div>
         </div>
       </CardContent>
