@@ -1,6 +1,7 @@
 import UserModel from "../models/User";
 import { Request, Response } from 'express';
 import { success, failure, ApiResponse } from "../interfaces/Response";
+import knockClient from "../externals/knock";
 
 interface UserResponse {
     id: string;
@@ -25,7 +26,36 @@ class AuthController {
                     avatar,
                     isPremium: false,
                 });
+
+
+                try {
+                    
+                    await knockClient.users.update(user.id, {
+                        name: username, email: email, avatar: avatar
+                    })
+
+                    console.log("Knock account created: ", user.id, username, email, avatar);
+                    
+                } catch (error) {
+                    console.error("Error while making knock account: ", error);
+                }
+
+
                 console.log(`New user created: ${username}`);
+            } else {
+                if (user.username !== username || user.avatar !== avatar) {
+                    try {
+                        await knockClient.users.update(user.id, {
+                            name: username,
+                            email: email,
+                            avatar: avatar,
+                        });
+                        console.log("Knock account updated: ", user.id, username, email, avatar);
+                        
+                    } catch (error: any) {
+                        console.error("Error while updating Knock user:", error?.message || error);
+                    }
+                }
             }
 
             const payload: UserResponse = {
