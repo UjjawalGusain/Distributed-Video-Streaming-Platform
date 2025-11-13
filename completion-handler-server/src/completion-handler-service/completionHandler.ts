@@ -104,7 +104,7 @@ class CompletionHandlerService {
                     thumbnail: attrs.thumbnail?.StringValue,
                     userId: attrs.userId.StringValue,
                     user_name: attrs.user_name.StringValue,
-                    video_title: attrs.userId.StringValue,
+                    video_title: attrs.video_title.StringValue,
                 };
 
                 console.log("Completion Object:", completionObject);

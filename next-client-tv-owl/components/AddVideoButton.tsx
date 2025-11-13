@@ -13,9 +13,10 @@ type AddVideoProps = {
   setFileUrl: React.Dispatch<React.SetStateAction<string>>;
   uploading: boolean;
   setUploading: React.Dispatch<React.SetStateAction<boolean>>;
+  setVideoDuration: React.Dispatch<React.SetStateAction<number>>;
 };
 
-const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading }: AddVideoProps) => {
+const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, setVideoDuration }: AddVideoProps) => {
 
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -34,12 +35,12 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading }: 
     });
   };
 
-
   const handleFileUpload = async () => {
     if (!file) return console.error("No file selected");
     setUploading(true);
 
     const duration = await getVideoDuration(file);
+    setVideoDuration(duration);
     console.log("Duration (s):", duration);
 
     const fileName = file.name;

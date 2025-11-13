@@ -21,6 +21,7 @@ import SignOutButton from '@/components/SignOutButton';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import Image from "next/image";
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   searchPlaceholder?: string;
@@ -60,9 +61,14 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     ref
   ) => {
     const id = useId();
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false)
+    const [mounted, setMounted] = useState(false);
+
+    const avatarSrc =
+      status === "authenticated"
+        ? session?.user?.avatar || session?.user?.image || "/default_avatar_light.png"
+        : "/default_avatar_light.png";
 
     useEffect(() => setMounted(true), [])
     if (!mounted) return null
@@ -178,11 +184,18 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 {session?.user?.username || "Anonymous"}
               </span>
 
-              <img
-                src={session?.user?.avatar || session?.user?.image || "/default_avatar_light.png"}
-                alt="TV Owl"
-                className="h-10 w-10 object-contain drop-shadow-[0_0_4px_rgba(255,255,255,0.15)] rounded-full"
+              <Image
+                key={avatarSrc}
+                src={avatarSrc}
+                alt={session?.user?.username ?? "Anonymous"}
+                width={40}
+                height={40}
+                unoptimized
+                priority
+                className="rounded-full"
               />
+
+
             </div>
           </div>
         </div>

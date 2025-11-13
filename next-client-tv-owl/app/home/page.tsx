@@ -37,10 +37,11 @@ const page = () => {
                 params: { page: currPage, limit }
             })
 
-            console.log("newVideos: ", newVideos.data.data.videos);
-
-
-            setVideos((prev) => [...prev, ...newVideos.data.data.videos]);
+            setVideos(prev => {
+                const combined = [...prev, ...newVideos.data.data.videos];
+                const unique = Array.from(new Map(combined.map(v => [v._id, v])).values());
+                return unique;
+            });
         } catch (error) {
             console.error(error);
         }
@@ -48,19 +49,28 @@ const page = () => {
 
     useEffect(() => {
         getVideos();
+        return () => setVideos([]);
     }, [])
 
     if (videos.length === 0) return;
 
     return (
         <div className='flex gap-5 px-10 flex-wrap justify-start pt-10'>
-            {
-                (videos.length !== 0 && videos.map((video) => {
-                    return (<CardPost key={video._id} title={video.title} shortDescription={video.shortDescription} thumbnail={video.thumbnail} views={video.views} duration={video.duration} updatedAt={video.updatedAt} username={video.poster_details.username} avatar={video.poster_details.avatar}/>)
-                }))
-            }
-
+            {videos.map((video) => (
+                <CardPost
+                    key={video._id}
+                    title={video.title}
+                    shortDescription={video.shortDescription}
+                    thumbnail={video.thumbnail}
+                    views={video.views}
+                    duration={video.duration}
+                    updatedAt={video.updatedAt}
+                    username={video.poster_details.username}
+                    avatar={video.poster_details.avatar}
+                />
+            ))}
         </div>
+
     )
 }
 
