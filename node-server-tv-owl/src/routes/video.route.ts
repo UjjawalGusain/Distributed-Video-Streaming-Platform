@@ -13,8 +13,12 @@ router.post("/part-upload",
     VideoController.partUpload
 );
 router.post("/complete-upload", verifyNextAuth, VideoController.completeUpload);
-router.post("/submit-video", verifyNextAuth, thumbnailUpload.single("thumbnail"), VideoController.submitVideoForPublish);
+router.post("/submit-video", 
+    // verifyNextAuth, 
+    thumbnailUpload.single("thumbnail"), VideoController.submitVideoForPublish);
 router.get("/:videoId", VideoController.getVideo);
-router.patch("/publish-formats", verifyNextAuth, VideoController.addVideoUrl)
+router.patch("/publish-formats", 
+    // verifyNextAuth, 
+    VideoController.addVideoUrl)
 
 export default router;

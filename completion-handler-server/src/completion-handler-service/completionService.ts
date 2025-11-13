@@ -12,10 +12,10 @@ class CompletionService {
             if (completionMessageObject.thumbnail) payload.thumbnail = completionMessageObject.thumbnail;
 
             await axios.patch(APIS.MARK_VIDEO_PUBLISHED, payload);
-
+            return true;
         } catch (error) {
             console.error("Error in marking video published: ", error);
-            throw new Error(`Error in marking video published: ${error}`);
+            return false;
         }
 
     }

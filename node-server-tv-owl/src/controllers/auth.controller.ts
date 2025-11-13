@@ -1,7 +1,7 @@
 import UserModel from "../models/User";
 import { Request, Response } from 'express';
 import { success, failure, ApiResponse } from "../interfaces/Response";
-import knockClient from "../externals/knock";
+import knockClient from "../externals/knockClient";
 
 interface UserResponse {
     id: string;

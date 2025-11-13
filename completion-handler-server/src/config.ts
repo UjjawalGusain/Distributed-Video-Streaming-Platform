@@ -16,3 +16,6 @@ export const AWS_REGION = getEnvVar("AWS_REGION");
 export const SQS_COMPLETION_QUEUE_NAME = getEnvVar("SQS_COMPLETION_QUEUE_NAME");
 export const SQS_COMPLETION_QUEUE_URL = getEnvVar("SQS_COMPLETION_QUEUE_URL");
 export const PORT = getEnvVar("PORT");
+
+export const KNOCK_SECRET_KEY = getEnvVar("KNOCK_SECRET_KEY");
+export const KNOCK_PUBLIC_KEY = getEnvVar("KNOCK_PUBLIC_KEY");

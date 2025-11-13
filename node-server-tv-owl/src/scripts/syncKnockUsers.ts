@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import knockClient from "../externals/knock";
+import knockClient from "../externals/knockClient";
 import { MONGODB_URI } from "../config";
 import UserModel from "../models/User";
 

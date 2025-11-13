@@ -1,26 +1,19 @@
 import { Request, Response } from 'express';
 import CompletionQueue from '../external/completionQueue';
-
-// export interface CompletionMessageInterface {
-//     videoId: string;
-//     formats: {
-//         resolution: string;
-//         url: string;
-//     };
-//     masterPlaylistUrl: string;
-//     thumbnail?: string;
-// };
-
+import { CompletionMessageInterface } from '../completion-handler-service/completionHandler';
 
 class CompletionHandlerController {
     addToQueue = async (req: Request, res: Response) => {
         try {
-            const {videoId, formats, masterPlaylistUrl, thumbnail} = req.body;
+            const {videoId, formats, masterPlaylistUrl, thumbnail, video_title, user_name, userId} = req.body;
 
-            const completionObject: {videoId: string, formats: {resolution: string, url: string}[], masterPlaylistUrl: string, thumbnail?: string} = {
+            const completionObject: CompletionMessageInterface = {
                 videoId,
                 formats,
                 masterPlaylistUrl,
+                video_title,
+                user_name,
+                userId,
             };
 
             if(thumbnail) completionObject.thumbnail = thumbnail;

@@ -220,6 +220,11 @@ class TranscodingService {
                 throw new Error("Video is already published.");
             }
 
+            const video_title = existingVideoMetadata.title;
+            const user_name = existingVideoMetadata.userId.username;
+            const userId = existingVideoMetadata.userId._id;
+
+
             const originalVideoUrl = existingVideo.originalVideoUrl;
             const downloadedVideoName = await this.downloadVideoFromS3(originalVideoUrl);
 
@@ -272,10 +277,13 @@ class TranscodingService {
             }));
 
             const masterPlaylistUrl = `${transcoderFolderUrl}/${masterPlaylistName}`;
-            const completionObjectPayload: {videoId: string, formats: {resolution: string, url: string}[], masterPlaylistUrl: string, thumbnail?: string} = {
+            const completionObjectPayload: {videoId: string, formats: {resolution: string, url: string}[], masterPlaylistUrl: string, thumbnail?: string, video_title: string, user_name: string, userId: string} = {
                 videoId,
                 formats: formatsWithUrl,
                 masterPlaylistUrl,
+                video_title,
+                user_name,
+                userId
             }
             if(thumbnailUrl) completionObjectPayload.thumbnail = thumbnailUrl;
 

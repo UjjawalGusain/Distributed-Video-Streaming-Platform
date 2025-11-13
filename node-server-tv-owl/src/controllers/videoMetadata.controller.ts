@@ -60,7 +60,8 @@ class VideoMetadataController {
     async getVideoMetadata(req: Request, res: Response<ApiResponse<getVideoMetadataResponse>>) {
         const { videoId } = req.params;
 
-        const existingMetadata = await VideoMetadataModel.findOne({ videoId });
+        const existingMetadata = await VideoMetadataModel.findOne({ videoId })
+                                .populate('userId', 'username avatar email');
         if (!existingMetadata) {
             return res.status(404).json(failure(404, "Could not find video metadata"));
         }

@@ -1,5 +1,6 @@
 import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import CompletionService from "./completionService";
+import knockClient from "../external/knock";
 
 
 export interface CompletionMessageInterface {
@@ -10,6 +11,9 @@ export interface CompletionMessageInterface {
     }[];
     masterPlaylistUrl: string;
     thumbnail?: string;
+    video_title: string;
+    user_name: string;
+    userId: string;
 };
 
 class CompletionHandlerService {
@@ -36,6 +40,18 @@ class CompletionHandlerService {
                     masterPlaylistUrl: {
                         DataType: "String",
                         StringValue: completionObject.masterPlaylistUrl,
+                    },
+                    userId: {
+                        DataType: "String",
+                        StringValue: completionObject.userId,
+                    },
+                    user_name: {
+                        DataType: "String",
+                        StringValue: completionObject.user_name,
+                    },
+                    video_title: {
+                        DataType: "String",
+                        StringValue: completionObject.video_title,
                     },
                     ...(completionObject.thumbnail && {
                         thumbnail: {
@@ -75,7 +91,9 @@ class CompletionHandlerService {
                 const attrs = message.MessageAttributes;
                 if (!attrs) throw new Error("Undefined message attributes in completion handler");
 
-                if (!attrs.formats?.StringValue || !attrs.videoId?.StringValue || !attrs.masterPlaylistUrl?.StringValue) {
+                if (!attrs.formats?.StringValue || !attrs.videoId?.StringValue || !attrs.masterPlaylistUrl?.StringValue
+                    || !attrs.userId?.StringValue || !attrs.user_name.StringValue || !attrs.video_title.StringValue
+                ) {
                     throw new Error("Missing required message attributes");
                 }
 
@@ -84,6 +102,9 @@ class CompletionHandlerService {
                     formats: JSON.parse(attrs.formats.StringValue),
                     masterPlaylistUrl: attrs.masterPlaylistUrl.StringValue,
                     thumbnail: attrs.thumbnail?.StringValue,
+                    userId: attrs.userId.StringValue,
+                    user_name: attrs.user_name.StringValue,
+                    video_title: attrs.userId.StringValue,
                 };
 
                 console.log("Completion Object:", completionObject);
@@ -101,12 +122,45 @@ class CompletionHandlerService {
     processMessage = async (completionObject: CompletionMessageInterface) => {
         try {
             console.log(`Starting marking video published for videoId: ${completionObject.videoId}`);
-            await this.completionService.markVideoPublished(completionObject);
-            console.log(`Completed marking video published for videoId: ${completionObject.videoId}`);
+
+            const isSuccess = await this.completionService.markVideoPublished(completionObject);
+
+            const basePayload = {
+                user_name: completionObject.user_name,
+                video_title: completionObject.video_title,
+                current_year: new Date().getFullYear(),
+            };
+
+            const payload = isSuccess
+                ? {
+                    ...basePayload,
+                    success: true,
+                    video_url: "https://demo_video_url.com",
+                    upload_date: new Date().toISOString(),
+                }
+                : {
+                    ...basePayload,
+                    success: false,
+                    reupload_url: "https://demo_video_reupload_url.com",
+                    failed_date: new Date().toISOString(),
+                };
+
+            const response = await knockClient.workflows.trigger("video-published", {
+                recipients: [completionObject.userId],
+                data: payload,
+            });
+
+            console.log(
+                `Completed ${isSuccess ? "successful" : "failed"} publishing for videoId: ${completionObject.videoId}`
+            );
+
+            return response;
         } catch (error) {
             console.error(`Error processing videoId ${completionObject.videoId}:`, error);
+            throw error;
         }
     };
+
 
     deleteMessage = async (receiptHandle: string) => {
         try {
