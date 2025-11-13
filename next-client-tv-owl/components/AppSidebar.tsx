@@ -1,4 +1,6 @@
+'use client'
 import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+import { useRouter } from 'next/navigation';
 
 import {
   Sidebar,
@@ -11,11 +13,12 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
+
 // Menu items.
 const items = [
   {
     title: "Home",
-    url: "#",
+    url: "/home",
     icon: Home,
   },
   {
@@ -41,6 +44,7 @@ const items = [
 ]
 
 export function AppSidebar() {
+  const router = useRouter();
   return (
     <Sidebar collapsible="icon">
       <SidebarContent>
@@ -49,9 +53,9 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} className="hover:cursor-pointer">
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
+                    <a onClick={() => {router.push(item.url)}}>
                       <item.icon />
                       <span>{item.title}</span>
                     </a>

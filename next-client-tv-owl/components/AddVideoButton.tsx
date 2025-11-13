@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from "react";
-import { DropzoneEmptyState, Dropzone, DropzoneContent } from './ui/shadcn-io/dropzone';
 import axios from "axios";
 import { Button } from "./ui/button";
+import APIS from "@/apis/apis";
+import { toast } from "sonner";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per part
 
@@ -50,7 +51,7 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
 
     try {
       // Step 1: Start multipart upload
-      const startUploadResponse = await axios.post("http://localhost:5000/api/video/start-upload", {
+      const startUploadResponse = await axios.post(APIS.START_UPLOAD, {
         fileName,
         fileType,
       });
@@ -84,7 +85,7 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
               );
 
               const uploadPartResponse = await axios.post(
-                "http://localhost:5000/api/video/part-upload",
+                APIS.PART_UPLOAD,
                 {
                   fileName: updatedFilename,
                   partNumber,
@@ -109,14 +110,14 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
       }
 
       // Step 3: Complete multipart upload
-      const completeUploadResponse = await axios.post("http://localhost:5000/api/video/complete-upload", {
+      const completeUploadResponse = await axios.post(APIS.COMPLETE_UPLOAD, {
         fileName: updatedFilename,
         uploadId,
         parts,
       });
 
       setFileUrl(completeUploadResponse.data.data.fileUrl);
-      alert("Video uploaded successfully!");
+      toast("Video uploaded successfully!");
     } catch (err) {
       console.error("Video upload failed:", err);
     } finally {
@@ -126,7 +127,6 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
 
   return (
     <div className="flex flex-col items-center gap-4">
-
 
       <Button
         onClick={handleFileUpload}

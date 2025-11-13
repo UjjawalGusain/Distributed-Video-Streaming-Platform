@@ -22,6 +22,7 @@ import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   searchPlaceholder?: string;
@@ -64,6 +65,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     const { data: session, status } = useSession();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const router = useRouter();
 
     const avatarSrc =
       status === "authenticated"
@@ -92,13 +94,14 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
           <div className="flex items-center gap-3">
             {children}
 
-            <span className="text-xl font-semibold text-foreground tracking-tight hover:text-primary transition-colors">
+            <span className="text-xl font-semibold text-foreground tracking-tight hover:text-primary transition-colors hover:cursor-pointer" onClick={() => {router.push('/home')}}>
               TV Owl
             </span>
             <img
               src="/tv_owl_icon_dark_no_bg.png"
               alt="TV Owl"
-              className="h-10 w-10 object-contain drop-shadow-[0_0_4px_rgba(255,255,255,0.15)]"
+              className="h-10 w-10 object-contain drop-shadow-[0_0_4px_rgba(255,255,255,0.15)] hover:cursor-pointer"
+              onClick={() => {router.push('/home')}}
             />
 
           </div>
