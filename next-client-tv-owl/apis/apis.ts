@@ -6,6 +6,8 @@ const APIS = {
     START_UPLOAD: `${NODE_SEVER_BASE_URL}/video/start-upload`,
     PART_UPLOAD: `${NODE_SEVER_BASE_URL}/video/part-upload`,
     COMPLETE_UPLOAD: `${NODE_SEVER_BASE_URL}/video/complete-upload`,
+    GET_VIDEO: `${NODE_SEVER_BASE_URL}/video`, // /:videoId
+    GET_VIDEO_METADATA: `${NODE_SEVER_BASE_URL}/video-metadata`, // /:videoId
 }
 
 export default APIS;

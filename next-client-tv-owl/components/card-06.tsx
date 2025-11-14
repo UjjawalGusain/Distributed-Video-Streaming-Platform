@@ -1,3 +1,4 @@
+'use client';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,6 +21,7 @@ import {
   ShareIcon,
 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 interface CardPostProps {
   title: string;
@@ -30,6 +32,7 @@ interface CardPostProps {
   updatedAt: string;
   username: string;
   avatar: string;
+  videoId: string;
 }
 
 export default function CardPost({
@@ -41,9 +44,11 @@ export default function CardPost({
   updatedAt,
   username,
   avatar,
+  videoId,
 }: CardPostProps) {
+  const router = useRouter();
   return (
-    <Card className="w-full max-w-xl md:max-w-96 min-w-60 lg:min-w-72 flex-1 shrink shadow-none py-0 gap-0 rounded-md">
+    <Card className="w-full max-w-xl md:max-w-96 min-w-60 lg:min-w-72 flex-1 shrink shadow-none py-0 gap-0 rounded-md hover:opacity-65 hover:cursor-pointer transition-opacity duration-200" onClick={() => {router.push(`/home/${videoId}`)}}>
       {/* <CardHeader className="flex flex-row items-center justify-between py-2.5 -mr-1">
         <Item className="w-full p-0 gap-2.5">
           <ItemMedia>
@@ -75,6 +80,7 @@ export default function CardPost({
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, 50vw"
+            loading="eager"
           />
         </div>
         <div className="py-5 px-2 flex justify-start items-start gap-2 ">

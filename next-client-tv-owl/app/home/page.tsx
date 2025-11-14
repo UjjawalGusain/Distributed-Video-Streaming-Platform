@@ -67,6 +67,7 @@ const page = () => {
                     updatedAt={video.updatedAt}
                     username={video.poster_details.username}
                     avatar={video.poster_details.avatar}
+                    videoId={video.videoId}
                 />
             ))}
         </div>

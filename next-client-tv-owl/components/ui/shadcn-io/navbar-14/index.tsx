@@ -21,7 +21,7 @@ import SignOutButton from '@/components/SignOutButton';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
-import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from 'next/navigation';
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
@@ -66,17 +66,17 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const router = useRouter();
+    const username = session?.user?.username ?? "Anonymous";
+    const avatarSrc = session?.user?.image ?? "/default_avatar_light.png";
 
-    const avatarSrc =
-      status === "authenticated"
-        ? session?.user?.avatar || session?.user?.image || "/default_avatar_light.png"
-        : "/default_avatar_light.png";
 
     useEffect(() => setMounted(true), [])
     if (!mounted) return null
 
     const onAddClickWithoutSignedIn = () => {
       toast("Sign in first to publish videos");
+      console.log("avatarSrc: ", avatarSrc);
+      
     }
 
     return (
@@ -94,14 +94,14 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
           <div className="flex items-center gap-3">
             {children}
 
-            <span className="text-xl font-semibold text-foreground tracking-tight hover:text-primary transition-colors hover:cursor-pointer" onClick={() => {router.push('/home')}}>
+            <span className="text-xl font-semibold text-foreground tracking-tight hover:text-primary transition-colors hover:cursor-pointer" onClick={() => { router.push('/home') }}>
               TV Owl
             </span>
             <img
               src="/tv_owl_icon_dark_no_bg.png"
               alt="TV Owl"
               className="h-10 w-10 object-contain drop-shadow-[0_0_4px_rgba(255,255,255,0.15)] hover:cursor-pointer"
-              onClick={() => {router.push('/home')}}
+              onClick={() => { router.push('/home') }}
             />
 
           </div>
@@ -187,16 +187,13 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 {session?.user?.username || "Anonymous"}
               </span>
 
-              <Image
-                key={avatarSrc}
-                src={avatarSrc}
-                alt={session?.user?.username ?? "Anonymous"}
-                width={40}
-                height={40}
-                unoptimized
-                priority
-                className="rounded-full"
-              />
+              <Avatar className="rounded-lg">
+                <AvatarImage
+                  src={avatarSrc}
+                  alt={username}
+                />
+                <AvatarFallback>{avatarSrc}</AvatarFallback>
+              </Avatar>
 
 
             </div>
