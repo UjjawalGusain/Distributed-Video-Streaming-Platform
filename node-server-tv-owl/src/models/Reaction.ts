@@ -1,14 +1,15 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
-export interface Like extends Document {
+export interface Reaction extends Document {
     userId: Types.ObjectId;
     targetType: "Video" | "Comment";
+    reactionType: "Like" | "Dislike";
     targetId: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
 
-export const LikeSchema = new Schema<Like>(
+export const ReactionSchema = new Schema<Reaction>(
     {
         userId: {
             type: Schema.Types.ObjectId,
@@ -20,6 +21,11 @@ export const LikeSchema = new Schema<Like>(
             enum: ["Video", "Comment"],
             required: true,
         },
+        reactionType: {
+            type: String,
+            enum: ["Like", "Dislike"],
+            required: true,
+        },
         targetId: {
             type: Schema.Types.ObjectId,
             refPath: "targetType",
@@ -29,10 +35,14 @@ export const LikeSchema = new Schema<Like>(
     { timestamps: true }
 );
 
-LikeSchema.index({ userId: 1 });
-LikeSchema.index({ targetId: 1 });
+ReactionSchema.index({ userId: 1 });
+ReactionSchema.index({ targetId: 1 });
+ReactionSchema.index(
+    { userId: 1, targetId: 1, targetType: 1 },
+    { unique: true }
+);
 
-export const LikeModel =
-    mongoose.models.Like || mongoose.model<Like>("Like", LikeSchema);
+export const ReactionModel =
+    mongoose.models.Reaction || mongoose.model<Reaction>("Reaction", ReactionSchema);
 
-export default LikeModel;
+export default ReactionModel;

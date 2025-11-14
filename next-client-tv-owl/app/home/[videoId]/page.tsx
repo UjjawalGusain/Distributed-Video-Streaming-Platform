@@ -7,6 +7,13 @@ import videojs from 'video.js';
 import type Player from "video.js/dist/types/player";
 import axios from 'axios';
 import APIS from '@/apis/apis';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MdOutlineSubscriptions } from "react-icons/md";
+import { ButtonGroup } from "@/components/ui/button-group"
+import { FcLike, FcDislike } from "react-icons/fc";
+import { FaComment, FaShare } from "react-icons/fa";
+import { useSession } from 'next-auth/react';
 
 interface videoDataInterface {
     title: string;
@@ -25,8 +32,10 @@ interface videoDataInterface {
 
 const page = () => {
     const params = useParams();
+    const { videoId } = params as { videoId: string };
     const playerRef = useRef<Player | null>(null);
     const [videoData, setVideoData] = useState<videoDataInterface | null>(null);
+    const { data: session } = useSession();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -72,6 +81,30 @@ const page = () => {
         return <div>Loading...</div>;
     }
 
+    const likeVideo = async (reaction: string, videoId: string, userId: string) => {
+
+        if (!session?.user?.id) {
+            console.error("User not logged in");
+            return;
+        }
+
+        if (!videoId) {
+            console.error("No video ID found");
+            return;
+        }
+        try {
+            await axios.post(APIS.POST_REACTION, {
+                targetType: "Video",
+                reactionType: reaction,
+                targetId: videoId,
+                userId: userId,
+            })
+
+        } catch (error) {
+            console.error(`Error liking the video: `, error);
+        }
+    }
+
     const videoPlayerOptions = {
         controls: true,
         responsive: true,
@@ -99,15 +132,60 @@ const page = () => {
         });
     };
     return (
-        <>
-            <div>
-                <h1>Video player</h1>
+        <div className='px-5 flex'>
+            <div className='flex flex-col items-start gap-5 w-4/6 '>
+                <div className=' p-4  w-full rounded-xl border-4'>
+                    <VideoPlayer
+                        options={videoPlayerOptions}
+                        onReady={handlePlayerReady}
+                    />
+                </div>
+                <div className='flex flex-col gap-4 w-full'>
+                    <div className="scroll-m-20 text-2xl font-semibold tracking-tight">{videoData.title}</div>
+                    <div className='flex gap-3 w-full items-center justify-between'>
+                        <div className='flex gap-2 items-center'>
+                            <Avatar className="rounded-full size-10 border-2">
+                                <AvatarImage src={videoData.avatar} alt={videoData.username} />
+                                <AvatarFallback>
+                                    {videoData.username.trim().split(/\s+/).map(w => w[0]?.toUpperCase()).join("")}
+                                </AvatarFallback>
+                            </Avatar>
+
+                            <div className='scroll-m-20 text-lg font-semibold tracking-tight'>
+                                {videoData.username}
+                            </div>
+                        </div>
+
+                        <div className='flex gap-4 items-center'>
+                            <Button variant="outline"><MdOutlineSubscriptions /> Subscribe</Button>
+                            <ButtonGroup>
+                                <Button variant="outline" onClick={() => {
+                                    if (!session?.user?.id) {
+                                        console.error("User not logged in");
+                                        return;
+                                    }
+                                    likeVideo("Like", videoId, session.user.id);
+                                }}><FcLike /> Like</Button>
+                                <Button variant="outline" onClick={() => {
+                                    if (!session?.user?.id) {
+                                        console.error("User not logged in");
+                                        return;
+                                    }
+                                    likeVideo("Dislike", videoId, session.user.id);
+                                }}><FcDislike /> Dislike</Button>
+                            </ButtonGroup>
+                            <Button variant="outline"><FaComment /> Comment</Button>
+                            <Button variant="outline"><FaShare /> Share</Button>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-            <VideoPlayer
-                options={videoPlayerOptions}
-                onReady={handlePlayerReady}
-            />
-        </>
+
+            <div>
+                recommendations
+            </div>
+        </div>
     )
 }
 

@@ -76,7 +76,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     const onAddClickWithoutSignedIn = () => {
       toast("Sign in first to publish videos");
       console.log("avatarSrc: ", avatarSrc);
-      
+
     }
 
     return (
@@ -187,12 +187,14 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 {session?.user?.username || "Anonymous"}
               </span>
 
-              <Avatar className="rounded-lg">
+              <Avatar className="rounded-lg size-10">
                 <AvatarImage
                   src={avatarSrc}
                   alt={username}
                 />
-                <AvatarFallback>{avatarSrc}</AvatarFallback>
+                <AvatarFallback>{username.split(" ")
+                  .map(word => word[0]?.toUpperCase())
+                  .join("")}</AvatarFallback>
               </Avatar>
 
 

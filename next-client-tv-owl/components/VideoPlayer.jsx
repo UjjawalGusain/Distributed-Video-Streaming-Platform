@@ -15,6 +15,7 @@ export const VideoPlayer = (props) => {
       const videoElement = document.createElement("video-js");
 
       videoElement.classList.add("vjs-big-play-centered");
+      videoElement.classList.add("rounded-2xl");
       videoRef.current.appendChild(videoElement);
 
       const player = (playerRef.current = videojs(videoElement, options, () => {
@@ -47,9 +48,9 @@ export const VideoPlayer = (props) => {
   return (
     <div
       data-vjs-player
-      style={{ width: "600px" }}
+      className='w-full rounded-2xl'
     >
-      <div ref={videoRef} />
+      <div className='w-full rounded-2xl' ref={videoRef} />
     </div>
   );
 };
