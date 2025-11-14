@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.route"
 import videoRouter from "./routes/video.route"
 import videoMetadataRouter from "./routes/videoMetadata.route"
 import reactionRouter from "./routes/reaction.route"
+import subscriptionRouter from "./routes/subscription.route"
 
 const app = express()
 dbConnect();
@@ -23,6 +24,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/video', videoRouter);
 app.use('/api/video-metadata', videoMetadataRouter);
 app.use('/api/reaction', reactionRouter);
+app.use('/api/subscription', subscriptionRouter);
 
 
 const PORT = process.env.PORT || 5000;

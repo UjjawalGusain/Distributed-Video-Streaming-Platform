@@ -20,6 +20,7 @@ interface videoDataInterface {
     longDescription?: string;
     shortDescription: string;
     formats: [{ resolution: string; url: string; _id: string; }];
+    ownerId: string;
     updatedAt: string;
     username: string;
     avatar?: string;
@@ -38,6 +39,7 @@ const page = () => {
     const { data: session } = useSession();
     const [likes, setLikes] = useState(0);
     const [dislikes, setDislikes] = useState(0);
+    const [subscribed, setSubscribed] = useState(false);
     const [userReaction, setUserReaction] = useState<"Like" | "Dislike" | null>(null);
 
     const handleReaction = async (reaction: "Like" | "Dislike") => {
@@ -68,6 +70,20 @@ const page = () => {
         }
     };
 
+    const handleSubscribed = async () => {
+        if (!session?.user?.id) return;
+
+        await axios.post(APIS.TOGGLE_SUBSCRIPTION, {
+            ownerId: videoData?.ownerId,
+            subscriberId: session.user.id,
+            subscriptionType: "regular",
+        });
+
+        setSubscribed(!subscribed);
+    }
+
+
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -96,7 +112,17 @@ const page = () => {
 
                 setUserReaction(userReactionRes?.data?.data?.reactionType || null);
 
+                const isSubscribed = session?.user?.id ?
+                    await axios.get(APIS.IS_SUBSCRIBED, {
+                        params: {
+                            ownerId: videoData?.data?.userId,
+                            subscriberId: session.user.id,
+                            subscriptionType: "regular",
+                        }
+                    }) : null
+
                 const videoDataObject = {
+                    ownerId: videoMetadata.data.userId._id,
                     title: videoMetadata.data.title,
                     shortDescription: videoMetadata.data.shortDescription,
                     ...(videoData.data.longDescription?.trim()
@@ -115,8 +141,11 @@ const page = () => {
                     views: videoMetadata.data.views,
                     thumbnail: videoMetadata.data.thumbnail,
                     url: videoData.data.masterPlaylistUrl,
-                };
 
+                };
+                console.log("isSubscribed: ", isSubscribed);
+                
+                setSubscribed(isSubscribed?.data?.data?.subscriptionStatus === "subscribed");
                 setLikes(likesCount);
                 setDislikes(dislikesCount);
                 setVideoData(videoDataObject);
@@ -179,7 +208,8 @@ const page = () => {
                         </div>
 
                         <div className='flex gap-4 items-center'>
-                            <Button variant="outline">
+                            <Button variant={subscribed === true ? "default" : "outline"}
+                                onClick={() => handleSubscribed()}>
                                 <MdOutlineSubscriptions /> Subscribe
                             </Button>
 

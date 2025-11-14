@@ -109,8 +109,6 @@ class ReactionController {
 
             const { targetId, reactionType, targetType } = req.query;
 
-            console.log(req.query)
-
             if (!targetId || Array.isArray(targetId) || !Types.ObjectId.isValid(String(targetId))) {
                 return res.status(400).json(failure(400, "Invalid targetId"));
             }
@@ -149,7 +147,6 @@ class ReactionController {
             if (reactionType) query.reactionType = reactionType;
 
             const reactionCount = await ReactionModel.countDocuments(query);
-            console.log("reactionCount: ", reactionCount);
             return res
                 .status(200)
                 .json(success(200, { reactionType, targetType, targetId, count: reactionCount }, `Count successful`));
@@ -186,7 +183,7 @@ class ReactionController {
                 reactionType: reaction?.reactionType || null
             }));
         } catch (err) {
-            return res.status(500).json(failure(500, "Internal Server Error"));
+            return res.status(500).json(failure(500, `Internal Server Error: ${err}`));
         }
     }
 

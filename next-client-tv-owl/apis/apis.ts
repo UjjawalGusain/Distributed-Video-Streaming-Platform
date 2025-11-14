@@ -11,6 +11,8 @@ const APIS = {
     POST_REACTION: `${NODE_SEVER_BASE_URL}/reaction/`,
     COUNT_REACTION: `${NODE_SEVER_BASE_URL}/reaction/count`,
     USER_REACTION: `${NODE_SEVER_BASE_URL}/reaction/user`,
+    TOGGLE_SUBSCRIPTION: `${NODE_SEVER_BASE_URL}/subscription/toggle`,
+    IS_SUBSCRIBED: `${NODE_SEVER_BASE_URL}/subscription/is-subscribed`,
 }
 
 export default APIS;

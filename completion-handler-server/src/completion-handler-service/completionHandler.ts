@@ -80,7 +80,6 @@ class CompletionHandlerService {
             const response = await this.sqsClient.send(new ReceiveMessageCommand(params));
 
             if (!response.Messages || response.Messages.length === 0) {
-                console.log("No messages available in the queue.");
                 return;
             }
 
