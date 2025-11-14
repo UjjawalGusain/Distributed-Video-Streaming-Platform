@@ -36,16 +36,65 @@ const page = () => {
     const playerRef = useRef<Player | null>(null);
     const [videoData, setVideoData] = useState<videoDataInterface | null>(null);
     const { data: session } = useSession();
+    const [likes, setLikes] = useState(0);
+    const [dislikes, setDislikes] = useState(0);
+    const [userReaction, setUserReaction] = useState<"Like" | "Dislike" | null>(null);
+
+    const handleReaction = async (reaction: "Like" | "Dislike") => {
+        if (!session?.user?.id) return;
+
+        await axios.post(APIS.POST_REACTION, {
+            targetId: videoId,
+            targetType: "Video",
+            reactionType: reaction,
+            userId: session.user.id,
+        });
+
+        if (userReaction === reaction) {
+            if (reaction === "Like") setLikes(likes - 1);
+            else setDislikes(dislikes - 1);
+
+            setUserReaction(null);
+        } else {
+            if (reaction === "Like") {
+                setLikes(likes + 1);
+                if (userReaction === "Dislike") setDislikes(dislikes - 1);
+            } else {
+                setDislikes(dislikes + 1);
+                if (userReaction === "Like") setLikes(likes - 1);
+            }
+
+            setUserReaction(reaction);
+        }
+    };
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const videoData = (await axios.get(`${APIS.GET_VIDEO}/${params.videoId}`)).data;
-                const videoMetadata = (await axios.get(`${APIS.GET_VIDEO_METADATA}/${params.videoId}`)).data;
+                const videoData = (await axios.get(`${APIS.GET_VIDEO}/${videoId}`)).data;
+                const videoMetadata = (await axios.get(`${APIS.GET_VIDEO_METADATA}/${videoId}`)).data;
 
-                if (videoData.success === false) {
-                    throw new Error("Cannot fetch video data");
-                }
+                if (videoData.success === false) return;
+
+                const likesCount = (await axios.get(APIS.COUNT_REACTION, {
+                    params: { targetId: videoId, reactionType: "Like", targetType: "Video" }
+                })).data.data.count;
+
+                const dislikesCount = (await axios.get(APIS.COUNT_REACTION, {
+                    params: { targetId: videoId, reactionType: "Dislike", targetType: "Video" }
+                })).data.data.count;
+
+                const userReactionRes = session?.user?.id
+                    ? await axios.get(APIS.USER_REACTION, {
+                        params: {
+                            targetId: videoId,
+                            targetType: "Video",
+                            userId: session.user.id
+                        }
+                    })
+                    : null;
+
+                setUserReaction(userReactionRes?.data?.data?.reactionType || null);
 
                 const videoDataObject = {
                     title: videoMetadata.data.title,
@@ -66,44 +115,21 @@ const page = () => {
                     views: videoMetadata.data.views,
                     thumbnail: videoMetadata.data.thumbnail,
                     url: videoData.data.masterPlaylistUrl,
-                }
+                };
 
+                setLikes(likesCount);
+                setDislikes(dislikesCount);
                 setVideoData(videoDataObject);
 
             } catch (err) {
                 console.error(err);
             }
         };
+
         fetchData();
-    }, [params.videoId]);
+    }, [videoId, session?.user?.id]);
 
-    if (!videoData) {
-        return <div>Loading...</div>;
-    }
-
-    const likeVideo = async (reaction: string, videoId: string, userId: string) => {
-
-        if (!session?.user?.id) {
-            console.error("User not logged in");
-            return;
-        }
-
-        if (!videoId) {
-            console.error("No video ID found");
-            return;
-        }
-        try {
-            await axios.post(APIS.POST_REACTION, {
-                targetType: "Video",
-                reactionType: reaction,
-                targetId: videoId,
-                userId: userId,
-            })
-
-        } catch (error) {
-            console.error(`Error liking the video: `, error);
-        }
-    }
+    if (!videoData) return <div>Loading...</div>;
 
     const videoPlayerOptions = {
         controls: true,
@@ -115,33 +141,29 @@ const page = () => {
                 type: "application/x-mpegURL"
             }
         ]
-    }
+    };
+
     const handlePlayerReady = (player: Player) => {
         playerRef.current = player;
-
-        // You can handle player events here, for example:
-        player.on("waiting", () => {
-            //   videojs.log("player is waiting");
-            console.log("player is waiting");
-
-        });
-
-        player.on("dispose", () => {
-            //   videojs.log("player will dispose");
-            console.log("player will dispose");
-        });
+        player.on("waiting", () => console.log("player is waiting"));
+        player.on("dispose", () => console.log("player will dispose"));
     };
+
     return (
         <div className='px-5 flex'>
             <div className='flex flex-col items-start gap-5 w-4/6 '>
-                <div className=' p-4  w-full rounded-xl border-4'>
+                <div className='p-4 w-full rounded-xl border-4'>
                     <VideoPlayer
                         options={videoPlayerOptions}
                         onReady={handlePlayerReady}
                     />
                 </div>
+
                 <div className='flex flex-col gap-4 w-full'>
-                    <div className="scroll-m-20 text-2xl font-semibold tracking-tight">{videoData.title}</div>
+                    <div className="scroll-m-20 text-2xl font-semibold tracking-tight">
+                        {videoData.title}
+                    </div>
+
                     <div className='flex gap-3 w-full items-center justify-between'>
                         <div className='flex gap-2 items-center'>
                             <Avatar className="rounded-full size-10 border-2">
@@ -157,28 +179,30 @@ const page = () => {
                         </div>
 
                         <div className='flex gap-4 items-center'>
-                            <Button variant="outline"><MdOutlineSubscriptions /> Subscribe</Button>
+                            <Button variant="outline">
+                                <MdOutlineSubscriptions /> Subscribe
+                            </Button>
+
                             <ButtonGroup>
-                                <Button variant="outline" onClick={() => {
-                                    if (!session?.user?.id) {
-                                        console.error("User not logged in");
-                                        return;
-                                    }
-                                    likeVideo("Like", videoId, session.user.id);
-                                }}><FcLike /> Like</Button>
-                                <Button variant="outline" onClick={() => {
-                                    if (!session?.user?.id) {
-                                        console.error("User not logged in");
-                                        return;
-                                    }
-                                    likeVideo("Dislike", videoId, session.user.id);
-                                }}><FcDislike /> Dislike</Button>
+                                <Button
+                                    variant={userReaction === "Like" ? "default" : "outline"}
+                                    onClick={() => handleReaction("Like")}
+                                >
+                                    <FcLike /> {likes} {likes === 1 ? "Like" : "Likes"}
+                                </Button>
+
+                                <Button
+                                    variant={userReaction === "Dislike" ? "default" : "outline"}
+                                    onClick={() => handleReaction("Dislike")}
+                                >
+                                    <FcDislike /> {dislikes} {dislikes === 1 ? "Dislike" : "Dislikes"}
+                                </Button>
                             </ButtonGroup>
+
                             <Button variant="outline"><FaComment /> Comment</Button>
                             <Button variant="outline"><FaShare /> Share</Button>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -186,7 +210,7 @@ const page = () => {
                 recommendations
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default page
+export default page;

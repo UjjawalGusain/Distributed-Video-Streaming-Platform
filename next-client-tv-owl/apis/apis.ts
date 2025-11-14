@@ -8,7 +8,9 @@ const APIS = {
     COMPLETE_UPLOAD: `${NODE_SEVER_BASE_URL}/video/complete-upload`,
     GET_VIDEO: `${NODE_SEVER_BASE_URL}/video`, // /:videoId
     GET_VIDEO_METADATA: `${NODE_SEVER_BASE_URL}/video-metadata`, // /:videoId
-    POST_REACTION: `${NODE_SEVER_BASE_URL}/reaction/`
+    POST_REACTION: `${NODE_SEVER_BASE_URL}/reaction/`,
+    COUNT_REACTION: `${NODE_SEVER_BASE_URL}/reaction/count`,
+    USER_REACTION: `${NODE_SEVER_BASE_URL}/reaction/user`,
 }
 
 export default APIS;
