@@ -55,7 +55,7 @@ const page = () => {
     if (videos.length === 0) return;
 
     return (
-        <div className='flex gap-5 px-10 flex-wrap justify-start pt-10'>
+        <div className='flex gap-5 px-10 flex-wrap justify-start pt-10 '>
             {videos.map((video) => (
                 <CardPost
                     key={video._id}

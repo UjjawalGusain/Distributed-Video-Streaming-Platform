@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import Loading from '../../loading';
 
 interface videoDataInterface {
     title: string;
@@ -66,7 +67,6 @@ const page = () => {
             targetId: videoId,
             targetType: "Video",
             reactionType: reaction,
-            userId: session.user.id,
         }, {
             headers: {
                 Authorization: `Bearer ${jwt}`,
@@ -102,7 +102,6 @@ const page = () => {
 
         await axios.post(APIS.TOGGLE_SUBSCRIPTION, {
             ownerId: videoData?.ownerId,
-            subscriberId: session.user.id,
             subscriptionType: "regular",
         }, {
             headers: {
@@ -188,7 +187,7 @@ const page = () => {
         fetchData();
     }, [videoId, session?.user?.id]);
 
-    if (!videoData) return <div>Loading...</div>;
+    if (!videoData) return <Loading/>;
 
     const isUserLoggedIn = Boolean(session?.user?.jwt);
 

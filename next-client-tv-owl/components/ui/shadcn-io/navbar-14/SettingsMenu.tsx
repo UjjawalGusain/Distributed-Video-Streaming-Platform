@@ -27,7 +27,7 @@ export const SettingsMenu = React.forwardRef<
           ref={ref}
           size="icon"
           variant="ghost"
-          className="text-muted-foreground size-8 rounded-full shadow-none"
+          className="text-muted-foreground size-8 rounded-full shadow-none hidden lg:block"
           aria-label="Settings menu"
         >
           <SettingsIcon size={16} aria-hidden="true" />
