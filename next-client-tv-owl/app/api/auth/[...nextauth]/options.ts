@@ -1,9 +1,8 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import dbConnect from "@/src/lib/dbConnect";
 import axios from "axios";
-import { email } from "zod";
 import { UserResponse, ApiResponse } from "@/src/types/ApiResponse";
+import jwt from "jsonwebtoken";
 
 
 if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -12,6 +11,10 @@ if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
 
 if (!process.env.BASE_URL_NODE_SERVER) {
     throw new Error("Missing Base Url environment variable");
+}
+
+if(!process.env.NEXTAUTH_SECRET) {
+    throw new Error("Missing NEXT AUTH Secret environment variable");
 }
 
 export const authOptions: NextAuthOptions = {
@@ -74,6 +77,12 @@ export const authOptions: NextAuthOptions = {
                         token.isPremium = dbUser.data.isPremium;
                         token.avatar = dbUser.data.avatar;
                     }
+
+                    token.raw = jwt.sign(
+                        { id: token.id, email: token.email },
+                        process.env.NEXTAUTH_SECRET as string,
+                        { expiresIn: "7d" }
+                    );
                 }
             } catch (err) {
                 console.error("Error in jwt callback:", err);
@@ -90,6 +99,8 @@ export const authOptions: NextAuthOptions = {
                     session.user.email = token.email;
                     session.user.isPremium = token.isPremium;
                     session.user.avatar = token.avatar;
+
+                    session.user.jwt = token.raw;
                 }
             } catch (err) {
                 console.error("Error in session callback:", err);

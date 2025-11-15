@@ -5,6 +5,7 @@ import axios from "axios";
 import { Button } from "./ui/button";
 import APIS from "@/apis/apis";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB per part
 
@@ -18,6 +19,8 @@ type AddVideoProps = {
 };
 
 const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, setVideoDuration }: AddVideoProps) => {
+
+  const { data: session } = useSession();
 
   const getVideoDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
@@ -50,17 +53,30 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
     const parts: { ETag: string; PartNumber: number }[] = [];
 
     try {
+
+      const jwt = session?.user?.jwt;
+
+      if (!jwt) {
+        toast.error("Missing authentication token");
+        return;
+      }
       // Step 1: Start multipart upload
-      const startUploadResponse = await axios.post(APIS.START_UPLOAD, {
-        fileName,
-        fileType,
-      });
+      const startUploadResponse = await axios.post(
+        APIS.START_UPLOAD,
+        { fileName, fileType },
+        {
+          headers: {
+            Authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+
       console.log("startUploadResponse.data.data: ", startUploadResponse.data.data);
-      
+
       uploadId = startUploadResponse.data.data.uploadId;
       const updatedFilename = startUploadResponse.data.data.fileName;
       console.log("updatedFilename: ", updatedFilename);
-      
+
       // Step 2: Split file and upload parts
       const totalParts = Math.ceil(file.size / CHUNK_SIZE);
 
@@ -91,6 +107,11 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
                   partNumber,
                   uploadId,
                   fileChunk: base64Chunk,
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${jwt}`,
+                  },
                 }
               );
 
@@ -114,6 +135,10 @@ const AddVideoButton = ({ file, fileUrl, setFileUrl, uploading, setUploading, se
         fileName: updatedFilename,
         uploadId,
         parts,
+      }, {
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
       });
 
       setFileUrl(completeUploadResponse.data.data.fileUrl);

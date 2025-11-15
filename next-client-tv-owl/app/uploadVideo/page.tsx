@@ -76,7 +76,7 @@ const VideoUpload = () => {
     const [fileUrl, setFileUrl] = useState<string>("");
     const [thumbnail, setThumbnail] = useState<File | null>(null);
     const [videoDuration, setVideoDuration] = useState(0);
-    const { data: session, status } = useSession();
+    const { data: session } = useSession();
 
     const handleDrop = (acceptedFiles: File[]) => {
         if (acceptedFiles.length > 0) setFile(acceptedFiles[0]);
@@ -93,12 +93,16 @@ const VideoUpload = () => {
     })
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        const userId = session?.user?.id;
+        const jwt = session?.user?.jwt;
+
+        if (!jwt) {
+            toast.error("Missing authentication token");
+            return;
+        }
 
         if (!fileUrl) return; // make sure video is uploaded
 
         const formData = new FormData();
-        formData.append("userId", userId || "");
         formData.append("title", data.title);
         formData.append("shortDescription", data.shortDescription);
         formData.append("longDescription", data.longDescription || "");
@@ -111,6 +115,7 @@ const VideoUpload = () => {
 
         await axios.post(APIS.SUBMIT_VIDEO, formData, {
             headers: {
+                Authorization: `Bearer ${jwt}`,
                 "Content-Type": "multipart/form-data",
             },
         });

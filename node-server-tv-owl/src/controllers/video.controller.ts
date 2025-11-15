@@ -29,6 +29,10 @@ interface getVideoResponse {
 
 }
 
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+
 class VideoController {
 
     async addVideoUrl(req: Request, res: Response<ApiResponse<getVideoResponse>>) {
@@ -53,7 +57,6 @@ class VideoController {
         }
     }
 
-
     async getVideo(req: Request, res: Response<ApiResponse<getVideoResponse>>) {
         const { videoId } = req.params;
 
@@ -72,12 +75,14 @@ class VideoController {
         return res.status(200).json(success(200, payload, "Get video successful"));
     }
 
-    async submitVideoForPublish(req: Request, res: Response<ApiResponse<submitVideoForPublishResponse>>) {
-        const { userId, title, shortDescription, longDescription, tags, duration, originalVideoUrl } = req.body;
+    async submitVideoForPublish(req: AuthenticatedRequest, res: Response<ApiResponse<submitVideoForPublishResponse>>) {
+        const { title, shortDescription, longDescription, tags, duration, originalVideoUrl } = req.body;
 
-        if (!userId) {
-            return res.status(400).json(failure(400, "No user id provided"));
+        const userId = req?.user?.id;
+        if(!userId) {
+            return res.status(401).json(failure(401, "No jwt token provided"));
         }
+
 
         const existingUser = await UserModel.findById(userId);
         if (!existingUser) {
@@ -181,7 +186,16 @@ class VideoController {
         return res.status(200).json(success(200, {}, "Video submitted for publish"));
     }
 
-    async startUpload(req: Request, res: Response<ApiResponse<startUploadResponse>>) {
+    async startUpload(req: AuthenticatedRequest, res: Response<ApiResponse<startUploadResponse>>) {
+
+        const userId = req?.user?.id;
+        if(!userId) {
+            return res.status(401).json(failure(401, "No jwt token provided"));
+        }
+        const existingUser = await UserModel.findById(userId);
+        if (!existingUser) {
+            return res.status(404).json(failure(404, "Could not find user"));
+        }
 
         const { fileName, fileType } = req.body;
         const timestampedFileName = `${Date.now()}_${fileName}`;

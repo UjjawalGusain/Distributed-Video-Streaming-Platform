@@ -14,7 +14,9 @@ class ReactionController {
 
     async reactTarget(req: Request, res: Response) {
         try {
-            const { targetType, userId, reactionType, targetId } = req.body;
+            const { targetType, reactionType, targetId } = req.body;
+
+            const userId = req?.user?.id;
 
             if (!userId || !Types.ObjectId.isValid(userId)) {
                 return res.status(400).json(failure(400, "Invalid userId"));

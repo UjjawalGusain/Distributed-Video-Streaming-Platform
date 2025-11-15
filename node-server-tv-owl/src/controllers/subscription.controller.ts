@@ -10,8 +10,9 @@ class SubscriptionController {
 
     async toggleSubscription(req: Request, res: Response) {
         try {
-            const { subscriberId, subscriptionType, ownerId } = req.body;
+            const { subscriptionType, ownerId } = req.body;
 
+            const subscriberId = req?.user?.id;
             if (subscriptionType !== "regular") {
                 if (subscriptionType === "premium") {
                     return res.status(400).json(failure(400, "Premium subscription not available yet"));

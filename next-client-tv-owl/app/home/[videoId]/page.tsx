@@ -14,6 +14,21 @@ import { ButtonGroup } from "@/components/ui/button-group"
 import { FcLike, FcDislike } from "react-icons/fc";
 import { FaComment, FaShare } from "react-icons/fa";
 import { useSession } from 'next-auth/react';
+import { HOME_LINK } from '@/clientServerConfig';
+import DisabledTooltip from '@/components/DisabledTooltip';
+import { toast } from 'sonner';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 interface videoDataInterface {
     title: string;
@@ -42,14 +57,20 @@ const page = () => {
     const [subscribed, setSubscribed] = useState(false);
     const [userReaction, setUserReaction] = useState<"Like" | "Dislike" | null>(null);
 
+
     const handleReaction = async (reaction: "Like" | "Dislike") => {
         if (!session?.user?.id) return;
+        const jwt = session?.user?.jwt;
 
         await axios.post(APIS.POST_REACTION, {
             targetId: videoId,
             targetType: "Video",
             reactionType: reaction,
             userId: session.user.id,
+        }, {
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+            },
         });
 
         if (userReaction === reaction) {
@@ -72,11 +93,21 @@ const page = () => {
 
     const handleSubscribed = async () => {
         if (!session?.user?.id) return;
+        const jwt = session?.user?.jwt;
+
+        if (!jwt) {
+            toast.error("Missing authentication token");
+            return;
+        }
 
         await axios.post(APIS.TOGGLE_SUBSCRIPTION, {
             ownerId: videoData?.ownerId,
             subscriberId: session.user.id,
             subscriptionType: "regular",
+        }, {
+            headers: {
+                Authorization: `Bearer ${jwt}`,
+            },
         });
 
         setSubscribed(!subscribed);
@@ -143,8 +174,7 @@ const page = () => {
                     url: videoData.data.masterPlaylistUrl,
 
                 };
-                console.log("isSubscribed: ", isSubscribed);
-                
+
                 setSubscribed(isSubscribed?.data?.data?.subscriptionStatus === "subscribed");
                 setLikes(likesCount);
                 setDislikes(dislikesCount);
@@ -159,6 +189,8 @@ const page = () => {
     }, [videoId, session?.user?.id]);
 
     if (!videoData) return <div>Loading...</div>;
+
+    const isUserLoggedIn = Boolean(session?.user?.jwt);
 
     const videoPlayerOptions = {
         controls: true,
@@ -207,31 +239,71 @@ const page = () => {
                             </div>
                         </div>
 
-                        <div className='flex gap-4 items-center'>
-                            <Button variant={subscribed === true ? "default" : "outline"}
-                                onClick={() => handleSubscribed()}>
-                                <MdOutlineSubscriptions /> Subscribe
-                            </Button>
+                        <div className="flex gap-4 items-center">
+                            <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to subscribe">
+                                <Button
+                                    variant={subscribed ? "default" : "outline"}
+                                    onClick={() => handleSubscribed()}
+                                    disabled={!isUserLoggedIn}
+                                >
+                                    <MdOutlineSubscriptions /> {subscribed ? "Subscribed" : "Subscribe"}
+                                </Button>
+                            </DisabledTooltip>
 
                             <ButtonGroup>
-                                <Button
-                                    variant={userReaction === "Like" ? "default" : "outline"}
-                                    onClick={() => handleReaction("Like")}
-                                >
-                                    <FcLike /> {likes} {likes === 1 ? "Like" : "Likes"}
-                                </Button>
+                                <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to like videos">
+                                    <Button
+                                        variant={userReaction === "Like" ? "default" : "outline"}
+                                        onClick={() => handleReaction("Like")}
+                                        disabled={!isUserLoggedIn}
+                                    >
+                                        <FcLike /> {likes} {likes === 1 ? "Like" : "Likes"}
+                                    </Button>
+                                </DisabledTooltip>
 
-                                <Button
-                                    variant={userReaction === "Dislike" ? "default" : "outline"}
-                                    onClick={() => handleReaction("Dislike")}
-                                >
-                                    <FcDislike /> {dislikes} {dislikes === 1 ? "Dislike" : "Dislikes"}
-                                </Button>
+                                <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to dislike videos">
+                                    <Button
+                                        variant={userReaction === "Dislike" ? "default" : "outline"}
+                                        onClick={() => handleReaction("Dislike")}
+                                        disabled={!isUserLoggedIn}
+                                    >
+                                        <FcDislike /> {dislikes} {dislikes === 1 ? "Dislike" : "Dislikes"}
+                                    </Button>
+                                </DisabledTooltip>
                             </ButtonGroup>
 
-                            <Button variant="outline"><FaComment /> Comment</Button>
-                            <Button variant="outline"><FaShare /> Share</Button>
+                            <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to comment">
+                                <Button variant="outline" disabled={!isUserLoggedIn}>
+                                    <FaComment /> Comment
+                                </Button>
+                            </DisabledTooltip>
+
+                            <Dialog>
+                                <DialogTrigger asChild>
+                                    <Button variant="outline"><FaShare /> Share</Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Share link</DialogTitle>
+                                        <DialogDescription>Anyone who has this link will be able to view this.</DialogDescription>
+                                    </DialogHeader>
+
+                                    <div className="flex items-center gap-2">
+                                        <div className="grid flex-1 gap-2">
+                                            <Label htmlFor="link" className="sr-only">Link</Label>
+                                            <Input id="link" defaultValue={`${HOME_LINK}/${params.videoId}`} readOnly />
+                                        </div>
+                                    </div>
+
+                                    <DialogFooter className="sm:justify-start">
+                                        <DialogClose asChild>
+                                            <Button type="button" variant="secondary">Close</Button>
+                                        </DialogClose>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
+
                     </div>
                 </div>
             </div>

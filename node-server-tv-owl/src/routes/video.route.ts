@@ -5,18 +5,18 @@ import { verifyNextAuth } from "../middlewares/verifyNextAuth.middleware";
 
 const router = Router();
 router.post("/start-upload", 
-    // verifyNextAuth,
+    verifyNextAuth,
     VideoController.startUpload);
 router.post("/part-upload", 
-    // verifyNextAuth,
+    verifyNextAuth,
     multerUpload.single("fileChunk"),
     VideoController.partUpload
 );
 router.post("/complete-upload", 
-    // verifyNextAuth, 
+    verifyNextAuth, 
     VideoController.completeUpload);
 router.post("/submit-video", 
-    // verifyNextAuth, 
+    verifyNextAuth, 
     thumbnailUpload.single("thumbnail"), VideoController.submitVideoForPublish);
 router.get("/:videoId", VideoController.getVideo);
 router.patch("/publish-formats", 

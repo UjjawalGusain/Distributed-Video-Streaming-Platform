@@ -15,4 +15,5 @@ const APIS = {
     IS_SUBSCRIBED: `${NODE_SEVER_BASE_URL}/subscription/is-subscribed`,
 }
 
+
 export default APIS;

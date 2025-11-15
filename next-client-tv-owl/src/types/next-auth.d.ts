@@ -9,6 +9,8 @@ declare module "next-auth" {
       email: string;
       isPremium: boolean;
       avatar: string | null;
+
+      jwt: string;
     } & DefaultSession["user"];
   }
 
@@ -33,6 +35,7 @@ declare module "next-auth/jwt" {
     email: string;
     isPremium: boolean;
     avatar: string | null;
+    raw: string;
   }
 }
 
