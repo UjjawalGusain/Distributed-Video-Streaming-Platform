@@ -4,6 +4,8 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  font-family: var(--font-outfit), sans-serif;
+
   --background: oklch(0.98 0.015 95);
   --foreground: oklch(0.21 0.015 95);
 

@@ -3,7 +3,6 @@ import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import VideoPlayer from "@/components/VideoPlayer";
 import { useRef } from 'react'
-import videojs from 'video.js';
 import type Player from "video.js/dist/types/player";
 import axios from 'axios';
 import APIS from '@/apis/apis';
@@ -16,6 +15,7 @@ import { FaComment, FaShare } from "react-icons/fa";
 import { useSession } from 'next-auth/react';
 import { HOME_LINK } from '@/clientServerConfig';
 import DisabledTooltip from '@/components/DisabledTooltip';
+import RelatedRecommendedVideos from '@/components/RelatedRecommendedVideos';
 import { toast } from 'sonner';
 import {
     Dialog,
@@ -27,8 +27,19 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+
+
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuGroup,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Menu } from 'lucide-react';
 import Loading from '../../loading';
 
 interface videoDataInterface {
@@ -187,7 +198,7 @@ const page = () => {
         fetchData();
     }, [videoId, session?.user?.id]);
 
-    if (!videoData) return <Loading/>;
+    if (!videoData) return <Loading />;
 
     const isUserLoggedIn = Boolean(session?.user?.jwt);
 
@@ -210,9 +221,9 @@ const page = () => {
     };
 
     return (
-        <div className='px-5 flex'>
-            <div className='flex flex-col items-start gap-5 w-4/6 '>
-                <div className='p-4 w-full rounded-xl border-4'>
+        <div className='pl-5 flex flex-col lg:flex-row w-full'>
+            <div className='flex flex-col items-start gap-5 md:w-4/6 shrink-0'>
+                <div className='p-4 w-full h-auto rounded-xl border-4'>
                     <VideoPlayer
                         options={videoPlayerOptions}
                         onReady={handlePlayerReady}
@@ -233,22 +244,12 @@ const page = () => {
                                 </AvatarFallback>
                             </Avatar>
 
-                            <div className='scroll-m-20 text-lg font-semibold tracking-tight'>
+                            <div className='scroll-m-20 text-lg font-semibold tracking-tight text-nowrap'>
                                 {videoData.username}
                             </div>
                         </div>
 
-                        <div className="flex gap-4 items-center">
-                            <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to subscribe">
-                                <Button
-                                    variant={subscribed ? "default" : "outline"}
-                                    onClick={() => handleSubscribed()}
-                                    disabled={!isUserLoggedIn}
-                                >
-                                    <MdOutlineSubscriptions /> {subscribed ? "Subscribed" : "Subscribe"}
-                                </Button>
-                            </DisabledTooltip>
-
+                        <div className="gap-4 items-center flex ">
                             <ButtonGroup>
                                 <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to like videos">
                                     <Button
@@ -271,44 +272,115 @@ const page = () => {
                                 </DisabledTooltip>
                             </ButtonGroup>
 
-                            <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to comment">
-                                <Button variant="outline" disabled={!isUserLoggedIn}>
-                                    <FaComment /> Comment
-                                </Button>
-                            </DisabledTooltip>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className="md:hidden">
+                                        <Menu />
+                                    </Button>
+                                </DropdownMenuTrigger>
 
-                            <Dialog>
-                                <DialogTrigger asChild>
-                                    <Button variant="outline"><FaShare /> Share</Button>
-                                </DialogTrigger>
-                                <DialogContent className="sm:max-w-md">
-                                    <DialogHeader>
-                                        <DialogTitle>Share link</DialogTitle>
-                                        <DialogDescription>Anyone who has this link will be able to view this.</DialogDescription>
-                                    </DialogHeader>
-
-                                    <div className="flex items-center gap-2">
-                                        <div className="grid flex-1 gap-2">
-                                            <Label htmlFor="link" className="sr-only">Link</Label>
-                                            <Input id="link" defaultValue={`${HOME_LINK}/${params.videoId}`} readOnly />
-                                        </div>
+                                <DropdownMenuContent align="end">
+                                    <div className="px-2 py-1">
+                                        <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to subscribe">
+                                            <Button
+                                                variant={subscribed ? "default" : "outline"}
+                                                onClick={() => handleSubscribed()}
+                                                disabled={!isUserLoggedIn}
+                                                className="w-full justify-start p-0"
+                                            >
+                                                <MdOutlineSubscriptions /> {subscribed ? "Subscribed" : "Subscribe"}
+                                            </Button>
+                                        </DisabledTooltip>
                                     </div>
 
-                                    <DialogFooter className="sm:justify-start">
-                                        <DialogClose asChild>
-                                            <Button type="button" variant="secondary">Close</Button>
-                                        </DialogClose>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
+                                    <div className="px-2 py-1">
+                                        <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to comment">
+                                            <Button variant="outline" disabled={!isUserLoggedIn} className="w-full justify-start p-0">
+                                                <FaComment /> Comment
+                                            </Button>
+                                        </DisabledTooltip>
+                                    </div>
+
+                                    <div className="px-2 py-1">
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" className="w-full justify-start p-0">
+                                                    <FaShare /> Share
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-md">
+                                                <DialogHeader>
+                                                    <DialogTitle>Share link</DialogTitle>
+                                                    <DialogDescription>
+                                                        Anyone who has this link will be able to view this.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="grid flex-1 gap-2">
+                                                        <Label htmlFor="link" className="sr-only">Link</Label>
+                                                        <Input id="link" defaultValue={`${HOME_LINK}/${params.videoId}`} readOnly />
+                                                    </div>
+                                                </div>
+                                                <DialogFooter className="sm:justify-start">
+                                                    <DialogClose asChild>
+                                                        <Button type="button" variant="secondary">Close</Button>
+                                                    </DialogClose>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+
+                            <div className="gap-4 items-center hidden md:flex lg:flex-row">
+                                <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to subscribe">
+                                    <Button
+                                        variant={subscribed ? "default" : "outline"}
+                                        onClick={() => handleSubscribed()}
+                                        disabled={!isUserLoggedIn}
+                                    >
+                                        <MdOutlineSubscriptions /> {subscribed ? "Subscribed" : "Subscribe"}
+                                    </Button>
+                                </DisabledTooltip>
+
+                                <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to comment">
+                                    <Button variant="outline" disabled={!isUserLoggedIn}>
+                                        <FaComment /> Comment
+                                    </Button>
+                                </DisabledTooltip>
+
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline"><FaShare /> Share</Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-md">
+                                        <DialogHeader>
+                                            <DialogTitle>Share link</DialogTitle>
+                                            <DialogDescription>Anyone who has this link will be able to view this.</DialogDescription>
+                                        </DialogHeader>
+                                        <div className="flex items-center gap-2">
+                                            <div className="grid flex-1 gap-2">
+                                                <Label htmlFor="link" className="sr-only">Link</Label>
+                                                <Input id="link" defaultValue={`${HOME_LINK}/${params.videoId}`} readOnly />
+                                            </div>
+                                        </div>
+                                        <DialogFooter className="sm:justify-start">
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="secondary">Close</Button>
+                                            </DialogClose>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
                         </div>
 
                     </div>
                 </div>
             </div>
 
-            <div>
-                recommendations
+            <div className='lg:w-2/6 flex'>
+                <RelatedRecommendedVideos videoId={videoId}/>
             </div>
         </div>
     );

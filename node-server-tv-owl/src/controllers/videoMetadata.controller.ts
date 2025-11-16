@@ -96,6 +96,33 @@ class VideoMetadataController {
         return res.status(200).json(success(200, payload, "Get videos metadata successful"));
     }
 
+    async getUserRelatedVideoRecommendation(req: Request, res: Response) {
+        
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const videoId = req.query.videoId as string;
+        const userWithSession = req.user;
+        const userId = userWithSession?.id;
+
+     
+
+        if(!videoId) {
+            return res.status(400).json(failure(400, "Video Id is not there"));
+        }
+
+        let videos: any[];
+        if(!userWithSession || !userId) {
+            videos = await trendingVideoService.getTrendingVideosByVideo(videoId, limit, page);
+        } else {
+            videos = await recommendationService.getRecommendedVideosByVideo(userId, videoId, limit, page);
+        }
+        const payload = {
+            videos,
+        }
+
+        return res.status(200).json(success(200, payload, "Get videos metadata successful"));
+    }
+
 
 };
 
