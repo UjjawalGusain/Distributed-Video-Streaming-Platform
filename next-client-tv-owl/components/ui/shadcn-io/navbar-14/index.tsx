@@ -95,7 +95,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       <header
         ref={ref}
         className={cn(
-          'border-b border-border/50 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-md px-2 md:px-4 transition-colors duration-300',
+          'border-b border-border/50 bg-linear-to-b from-background/80 to-background/40 backdrop-blur-md px-2 transition-colors duration-300',
           className
         )}
         {...props}

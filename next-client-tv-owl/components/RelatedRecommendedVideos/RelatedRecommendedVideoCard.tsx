@@ -59,7 +59,7 @@ const RelatedRecommendedVideoCard = ({
 
     return (
         <Card
-            className="w-full shrink shadow-none py-0 rounded-md hover:opacity-65 hover:cursor-pointer transition-opacity duration-200 mt-5"
+            className="w-full shrink shadow-none py-0 rounded-md hover:opacity-65 hover:cursor-pointer transition-opacity duration-200 my-0.5"
             onClick={() => router.push(`/home/${videoId}`)}
         >
             <CardContent className="md:p-0 px-10 flex flex-col md:flex-row items-start justify-between gap-3 w-full">

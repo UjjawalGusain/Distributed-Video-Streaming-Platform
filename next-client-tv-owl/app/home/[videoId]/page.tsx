@@ -221,21 +221,21 @@ const page = () => {
     };
 
     return (
-        <div className='pl-5 flex flex-col lg:flex-row w-full'>
-            <div className='flex flex-col items-start gap-5 md:w-4/6 shrink-0'>
-                <div className='p-4 w-full h-auto rounded-xl border-4'>
+        <div className='flex flex-col lg:flex-row w-full overflow-x-hidden'>
+            <div className='flex flex-col items-start gap-5 lg:w-4/6 min-w-0 w-full px-3'>
+                <div className='p-4 w-full h-auto rounded-xl overflow-hidden'>
                     <VideoPlayer
                         options={videoPlayerOptions}
                         onReady={handlePlayerReady}
                     />
                 </div>
-
-                <div className='flex flex-col gap-4 w-full'>
+ 
+                <div className='flex flex-col gap-4 w-full shrink'>
                     <div className="scroll-m-20 text-2xl font-semibold tracking-tight">
                         {videoData.title}
                     </div>
 
-                    <div className='flex gap-3 w-full items-center justify-between'>
+                    <div className='flex gap-1 w-full items-center justify-between'>
                         <div className='flex gap-2 items-center'>
                             <Avatar className="rounded-full size-10 border-2">
                                 <AvatarImage src={videoData.avatar} alt={videoData.username} />
@@ -274,7 +274,7 @@ const page = () => {
 
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="md:hidden">
+                                    <Button variant="outline" className="xl:hidden">
                                         <Menu />
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -333,7 +333,7 @@ const page = () => {
                             </DropdownMenu>
 
 
-                            <div className="gap-4 items-center hidden md:flex lg:flex-row">
+                            <div className="gap-4 items-center hidden xl:flex">
                                 <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to subscribe">
                                     <Button
                                         variant={subscribed ? "default" : "outline"}
@@ -379,7 +379,9 @@ const page = () => {
                 </div>
             </div>
 
-            <div className='lg:w-2/6 flex'>
+            <div className='lg:w-2/6 flex flex-col items-center min-w-0'>
+                  <h1 className='text-xl underline text-center mt-3 truncate min-w-0'>Recommended Videos</h1>
+
                 <RelatedRecommendedVideos videoId={videoId}/>
             </div>
         </div>
