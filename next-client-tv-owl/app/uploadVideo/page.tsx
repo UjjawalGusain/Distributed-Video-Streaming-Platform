@@ -41,12 +41,12 @@ const formSchema = z.object({
     shortDescription: z
         .string()
         .min(10, "Short description must be at least 10 characters.")
-        .max(200, "Short description must be at most 200 characters."),
+        .max(500, "Short description must be at most 500 characters."),
 
     longDescription: z
         .string()
         .min(50, "Long description must be at least 50 characters.")
-        .max(500, "Long description must be at most 500 characters.")
+        .max(5000, "Long description must be at most 5000 characters.")
         .optional()
         .or(z.literal("")), // allow empty string
 

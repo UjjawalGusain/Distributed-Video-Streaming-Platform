@@ -54,6 +54,10 @@ const RelatedRecommendedVideoCard = ({
         return years === 1 ? "1 year" : `${years} years`;
     };
 
+    const truncateWords = (str: string, maxLen: number) => {
+        if (str.length <= maxLen) return str;
+        return str.slice(0, str.lastIndexOf(" ", maxLen)) + "...";
+    }
 
     const durationAgo = getTimeAgo(String(Date.parse(updatedAt)));
 
@@ -62,7 +66,7 @@ const RelatedRecommendedVideoCard = ({
             className="w-full shrink shadow-none py-0 rounded-md hover:opacity-65 hover:cursor-pointer transition-opacity duration-200 my-0.5"
             onClick={() => router.push(`/home/${videoId}`)}
         >
-            <CardContent className="md:p-0 px-10 flex flex-col md:flex-row items-start justify-between gap-3 w-full">
+            <CardContent className="md:p-0 px-10 flex flex-col md:flex-row lg:flex-col xl:flex-row items-start justify-between gap-3 w-full">
 
                 <div className="relative md:w-40 w-full aspect-video md:rounded-lg overflow-hidden">
                     <Image
@@ -97,7 +101,7 @@ const RelatedRecommendedVideoCard = ({
                             {username} <br />
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground lg:hidden">
-                            {shortDescription} <br />
+                            {truncateWords(shortDescription, 100)} <br />
                             {views} views | {`${durationAgo} ago`}
                         </div>
 
@@ -105,7 +109,7 @@ const RelatedRecommendedVideoCard = ({
                 </div>
 
             </CardContent>
-            <Separator/>
+            <Separator />
 
         </Card>
 

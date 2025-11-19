@@ -41,6 +41,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Menu } from 'lucide-react';
 import Loading from '../../loading';
+import Comment from '@/components/Comment';
 
 interface videoDataInterface {
     title: string;
@@ -59,6 +60,8 @@ interface videoDataInterface {
 };
 
 const page = () => {
+    const MAX_CHARS_SHORT = 100;
+    const MAX_CHARS_LONG = 200;
     const params = useParams();
     const { videoId } = params as { videoId: string };
     const playerRef = useRef<Player | null>(null);
@@ -68,6 +71,17 @@ const page = () => {
     const [dislikes, setDislikes] = useState(0);
     const [subscribed, setSubscribed] = useState(false);
     const [userReaction, setUserReaction] = useState<"Like" | "Dislike" | null>(null);
+    const [expandedShortDescription, setExpandedShortDescription] = useState(false);
+    const [expandedLongDescription, setExpandedLongDescription] = useState(false);
+
+    const shortDescription = videoData?.shortDescription || "";
+    const isShortDescriptionLonger = shortDescription.length > MAX_CHARS_SHORT;
+    const visibleShortDescriptionText = expandedShortDescription ? shortDescription : shortDescription.slice(0, MAX_CHARS_SHORT);
+
+    const isLongDescription = videoData?.longDescription != undefined
+    const longDescription = videoData?.longDescription || "";
+    const isLongDescriptionLonger = longDescription.length > MAX_CHARS_LONG;
+    const visibleLongDescriptionText = expandedLongDescription ? longDescription : longDescription.slice(0, MAX_CHARS_LONG);
 
 
     const handleReaction = async (reaction: "Like" | "Dislike") => {
@@ -122,8 +136,6 @@ const page = () => {
 
         setSubscribed(!subscribed);
     }
-
-
 
     useEffect(() => {
         const fetchData = async () => {
@@ -222,14 +234,14 @@ const page = () => {
 
     return (
         <div className='flex flex-col lg:flex-row w-full overflow-x-hidden'>
-            <div className='flex flex-col items-start gap-5 lg:w-4/6 min-w-0 w-full px-3'>
+            <div className='flex flex-col items-start gap-5 xl:w-4/6 min-w-0 w-full px-4'>
                 <div className='p-4 w-full h-auto rounded-xl overflow-hidden'>
                     <VideoPlayer
                         options={videoPlayerOptions}
                         onReady={handlePlayerReady}
                     />
                 </div>
- 
+
                 <div className='flex flex-col gap-4 w-full shrink'>
                     <div className="scroll-m-20 text-2xl font-semibold tracking-tight">
                         {videoData.title}
@@ -377,12 +389,49 @@ const page = () => {
 
                     </div>
                 </div>
+
+                <div className="w-full rounded-xl bg-muted p-2 text-accent-foreground text-sm leading-relaxed shadow-sm border border-border">
+
+                    <p className="whitespace-pre-line">
+                        {visibleShortDescriptionText}{!expandedShortDescription && isShortDescriptionLonger ? "..." : ""}
+                    </p>
+
+                    {isShortDescriptionLonger && (
+                        <button
+                            onClick={() => setExpandedShortDescription(!expandedShortDescription)}
+                            className="mt-2 text-primary font-medium hover:underline"
+                        >
+                            {expandedShortDescription ? "Show less" : "Show more"}
+                        </button>
+                    )}
+                </div>
+
+                {isLongDescription && <div className="w-full rounded-xl bg-muted p-2 text-accent-foreground text-sm leading-relaxed shadow-sm border border-border">
+
+                    <p className="whitespace-pre-line">
+                        {visibleLongDescriptionText}{!expandedLongDescription && isLongDescriptionLonger ? "..." : ""}
+                    </p>
+
+                    {isLongDescriptionLonger && (
+                        <button
+                            onClick={() => setExpandedLongDescription(!expandedLongDescription)}
+                            className="mt-2 text-primary font-medium hover:underline"
+                        >
+                            {expandedLongDescription ? "Show less" : "Show more"}
+                        </button>
+                    )}
+                </div>}
+
+                <div className='w-full'>
+                    <Comment videoId={videoId}/>
+                </div>
+
             </div>
 
             <div className='lg:w-2/6 flex flex-col items-center min-w-0'>
-                  <h1 className='text-xl underline text-center mt-3 truncate min-w-0'>Recommended Videos</h1>
+                <h1 className='text-xl underline text-center mt-3 truncate min-w-0'>Recommended Videos</h1>
 
-                <RelatedRecommendedVideos videoId={videoId}/>
+                <RelatedRecommendedVideos videoId={videoId} />
             </div>
         </div>
     );

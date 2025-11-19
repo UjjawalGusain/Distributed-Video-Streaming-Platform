@@ -14,6 +14,7 @@ const APIS = {
     USER_REACTION: `${NODE_SEVER_BASE_URL}/reaction/user`,
     TOGGLE_SUBSCRIPTION: `${NODE_SEVER_BASE_URL}/subscription/toggle`,
     IS_SUBSCRIBED: `${NODE_SEVER_BASE_URL}/subscription/is-subscribed`,
+    CREATE_COMMENT: `${NODE_SEVER_BASE_URL}/comment`,
 }
 
 
