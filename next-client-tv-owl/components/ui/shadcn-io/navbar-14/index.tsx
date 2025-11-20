@@ -20,9 +20,10 @@ import SignOutButton from '@/components/Header/SignOutButton';
 import { useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from 'next/navigation';
 import Loading from '@/app/loading';
+import Image from 'next/image';
+import { ItemMedia } from '../../item';
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   searchPlaceholder?: string;
@@ -84,12 +85,12 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       };
 
       window.addEventListener('resize', handleResize);
-      handleResize(); 
+      handleResize();
 
       return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    if (!mounted) return <Loading/>;
+    if (!mounted) return <Loading />;
 
     return (
       <header
@@ -223,12 +224,28 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                     {username}
                   </span>
 
-                  <Avatar className="rounded-full size-10">
-                    <AvatarImage src={avatarSrc} alt={username} />
-                    <AvatarFallback>
-                      {username.split(" ").map(w => w[0]?.toUpperCase()).join("")}
-                    </AvatarFallback>
-                  </Avatar>
+                  {session?.user?.avatar && (
+                    <ItemMedia>
+                      <Image
+                        src={session.user.avatar}
+                        className="h-9 w-9 rounded-full bg-secondary object-contain border"
+                        alt=""
+                        height={32}
+                        width={32}
+                      />
+                    </ItemMedia>
+                  )}
+                  {!session?.user?.avatar && (
+                    <ItemMedia>
+                      <Image
+                        src={"/default_avatar.png"}
+                        className="h-9 w-9 rounded-full bg-secondary object-contain border"
+                        alt=""
+                        height={32}
+                        width={32}
+                      />
+                    </ItemMedia>
+                  )}
                 </div>
 
               </div>

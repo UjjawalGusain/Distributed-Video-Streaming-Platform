@@ -7,7 +7,6 @@ import type Player from "video.js/dist/types/player";
 import axios from 'axios';
 import APIS from '@/apis/apis';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MdOutlineSubscriptions } from "react-icons/md";
 import { ButtonGroup } from "@/components/ui/button-group"
 import { FcLike, FcDislike } from "react-icons/fc";
@@ -32,9 +31,6 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
-    DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Label } from '@/components/ui/label';
@@ -42,6 +38,8 @@ import { Input } from '@/components/ui/input';
 import { Menu } from 'lucide-react';
 import Loading from '../../loading';
 import Comment from '@/components/Comment';
+import { ItemMedia } from '@/components/ui/item';
+import Image from 'next/image';
 
 interface videoDataInterface {
     title: string;
@@ -249,12 +247,29 @@ const page = () => {
 
                     <div className='flex gap-1 w-full items-center justify-between'>
                         <div className='flex gap-2 items-center'>
-                            <Avatar className="rounded-full size-10 border-2">
-                                <AvatarImage src={videoData.avatar} alt={videoData.username} />
-                                <AvatarFallback>
-                                    {videoData.username.trim().split(/\s+/).map(w => w[0]?.toUpperCase()).join("")}
-                                </AvatarFallback>
-                            </Avatar>
+
+                            {videoData?.avatar && (
+                                <ItemMedia>
+                                    <Image
+                                        src={videoData.avatar}
+                                        className="rounded-full size-10 border-2"
+                                        alt=""
+                                        height={32}
+                                        width={32}
+                                    />
+                                </ItemMedia>
+                            )}
+                            {!videoData?.avatar && (
+                                <ItemMedia>
+                                    <Image
+                                        src={"/default_avatar"}
+                                        className="rounded-full size-10 border-2"
+                                        alt=""
+                                        height={32}
+                                        width={32}
+                                    />
+                                </ItemMedia>
+                            )}
 
                             <div className='scroll-m-20 text-lg font-semibold tracking-tight text-nowrap'>
                                 {videoData.username}
@@ -423,7 +438,7 @@ const page = () => {
                 </div>}
 
                 <div className='w-full'>
-                    <Comment videoId={videoId}/>
+                    <Comment videoId={videoId} />
                 </div>
 
             </div>

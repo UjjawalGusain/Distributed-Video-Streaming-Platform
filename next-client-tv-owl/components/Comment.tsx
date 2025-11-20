@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import axios from 'axios'
@@ -7,6 +7,9 @@ import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
 import { ArrowBigRightDash } from 'lucide-react'
+import { ItemMedia } from './ui/item'
+import Image from 'next/image'
+import CommentCollection from './Comment/CommentCollection'
 
 const Comment = ({ videoId }: { videoId: string }) => {
     const { data: session } = useSession();
@@ -36,8 +39,7 @@ const Comment = ({ videoId }: { videoId: string }) => {
         }
     };
 
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             submitComment();
@@ -45,7 +47,7 @@ const Comment = ({ videoId }: { videoId: string }) => {
     };
 
     return (
-        <div className='w-full flex flex-col'>
+        <div className='w-full flex flex-col gap-3'>
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -53,21 +55,26 @@ const Comment = ({ videoId }: { videoId: string }) => {
                 }}
                 className="flex w-full gap-3 items-center"
             >
-                <Textarea
-                    id="comment"
-                    placeholder="Write a comment..."
-                    className="w-full"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                />
+
+                {session?.user?.avatar && (
+                    <ItemMedia>
+                        <Image
+                            src={session.user.avatar}
+                            className="h-9 w-9 rounded-full bg-secondary object-contain border"
+                            alt=""
+                            height={32}
+                            width={32}
+                        />
+                    </ItemMedia>
+                )}
+                <input type="text" name="comment" id="comment" className='w-full focus:outline-0 focus:shadow-0 border-b-2 text-sm' placeholder='Write a comment...' onKeyDown={handleKeyDown} onChange={(e) => setText(e.target.value)} value={text}/>
 
                 <Button type="submit" className='lg:hidden'>
                     <ArrowBigRightDash />
                 </Button>
             </form>
 
-
+            <CommentCollection videoId={videoId}/>
         </div>
     );
 };

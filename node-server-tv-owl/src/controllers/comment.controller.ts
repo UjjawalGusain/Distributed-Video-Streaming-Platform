@@ -89,25 +89,30 @@ class CommentController {
 
     async getCommentsOnVideo(req: Request, res: Response) {
         try {
-            const { videoId, page = 1, limit = 10 } = req.body;
+            const { videoId } = req.query;
 
-            if (!videoId || !Types.ObjectId.isValid(videoId)) {
+            if (!videoId || !Types.ObjectId.isValid(videoId as string)) {
                 return res.status(400).json(failure(400, "Invalid videoId"));
             }
 
-            const pipeline = getCommentOnVideoAggregatePipeline(videoId, limit, page);
+            const page = Number(req.query.page ?? 1);
+            const limit = Number(req.query.limit ?? 10);
 
+            const pipeline = getCommentOnVideoAggregatePipeline(
+                videoId as string,
+                limit,
+                page
+            );
+            
+            // Run the aggregation
             const comments = await CommentModel.aggregate(pipeline);
 
-            return res
-                .status(200)
-                .json(success(200, comments, "Comments fetched"));
-        } catch (error) {
-            return res
-                .status(500)
-                .json(failure(500, `Error while fetching comments: ${error}`));
+            return res.status(200).json(success(200, { comments }));
+        } catch (err) {
+            return res.status(500).json(failure(500, "Internal error"));
         }
     }
+
 
 }
 
