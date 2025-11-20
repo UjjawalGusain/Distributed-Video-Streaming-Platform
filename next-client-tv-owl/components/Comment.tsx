@@ -1,6 +1,4 @@
-import React, { useEffect, useState } from 'react'
-import { Textarea } from './ui/textarea'
-import { Label } from './ui/label'
+import React, { useState } from 'react'
 import axios from 'axios'
 import APIS from '@/apis/apis'
 import { useSession } from 'next-auth/react'
@@ -11,9 +9,12 @@ import { ItemMedia } from './ui/item'
 import Image from 'next/image'
 import CommentCollection from './Comment/CommentCollection'
 
-const Comment = ({ videoId }: { videoId: string }) => {
+const Comment = ({ videoId, userId }: { videoId: string; userId: string }) => {
     const { data: session } = useSession();
     const [text, setText] = useState("");
+    const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+
+    const refreshComments = () => setRefreshTrigger(prev => prev + 1);
 
     const submitComment = async () => {
         const trimmed = text.trim();
@@ -33,8 +34,9 @@ const Comment = ({ videoId }: { videoId: string }) => {
             );
 
             setText("");
+            refreshComments();
             toast.success("Comment added");
-        } catch (err) {
+        } catch {
             toast.error("Failed to comment");
         }
     };
@@ -47,7 +49,7 @@ const Comment = ({ videoId }: { videoId: string }) => {
     };
 
     return (
-        <div className='w-full flex flex-col gap-3'>
+        <div className="w-full flex flex-col gap-3">
             <form
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -55,7 +57,6 @@ const Comment = ({ videoId }: { videoId: string }) => {
                 }}
                 className="flex w-full gap-3 items-center"
             >
-
                 {session?.user?.avatar && (
                     <ItemMedia>
                         <Image
@@ -67,14 +68,27 @@ const Comment = ({ videoId }: { videoId: string }) => {
                         />
                     </ItemMedia>
                 )}
-                <input type="text" name="comment" id="comment" className='w-full focus:outline-0 focus:shadow-0 border-b-2 text-sm' placeholder='Write a comment...' onKeyDown={handleKeyDown} onChange={(e) => setText(e.target.value)} value={text}/>
 
-                <Button type="submit" className='lg:hidden'>
+                <input
+                    type="text"
+                    id="comment"
+                    className="w-full border-b-2 text-sm focus:outline-0"
+                    placeholder="Write a comment..."
+                    onKeyDown={handleKeyDown}
+                    onChange={(e) => setText(e.target.value)}
+                    value={text}
+                />
+
+                <Button type="submit" className="lg:hidden">
                     <ArrowBigRightDash />
                 </Button>
             </form>
 
-            <CommentCollection videoId={videoId}/>
+            <CommentCollection
+                videoId={videoId}
+                userId={userId}
+                refreshTrigger={refreshTrigger}
+            />
         </div>
     );
 };

@@ -1,6 +1,8 @@
 import APIS from '@/apis/apis';
 import axios from 'axios';
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
+import Image from 'next/image';
+import { ItemMedia } from '../ui/item';
 
 interface CommentInterface {
   _id: string;
@@ -16,59 +18,93 @@ interface CommentInterface {
   };
   text: string;
   createdAt: string;
-};
+}
 
-const CommentCollection = ({ videoId }: { videoId: string }) => {
+const CommentCollection = ({
+  videoId,
+  userId,
+  refreshTrigger
+}: {
+  videoId: string;
+  userId: string;
+  refreshTrigger: number;
+}) => {
 
   const [comments, setComments] = useState<CommentInterface[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const limit = 10;
 
+  // RESET LOGIC — runs when user posts a new comment
   useEffect(() => {
+    setComments([]);
+    setPage(1);
+    setHasMore(true);
+  }, [refreshTrigger]);
 
-    const getVideos = async () => {
+  // FETCH LOGIC — runs when page changes
+  useEffect(() => {
+    const getComments = async () => {
       if (loading || !hasMore) return;
 
       setLoading(true);
 
       const res = await axios.get(APIS.GET_COMMENTS_ON_VIDEO, {
-        params: {
-          videoId,
-          page,
-          limit,
-        }
-      })
+        params: { videoId, page, limit }
+      });
 
       const newComments = res.data.data.comments;
 
       setComments(prev => {
         const combined = [...prev, ...newComments];
-        const unique = Array.from(new Map(combined.map(v => [v._id, v])).values());
-        return unique;
+        return Array.from(new Map(combined.map(v => [v._id, v])).values());
       });
 
-      if (newComments.length < limit) {
-        setHasMore(false);
-      }
+      if (newComments.length < limit) setHasMore(false);
 
       setLoading(false);
-    }
+    };
 
-    getVideos();
-  }, [page, videoId, hasMore])
+    getComments();
+  }, [page, videoId, hasMore]);
 
   return (
-    <div className="flex flex-col">
-  {comments.map((comment) => (
-    <div key={comment._id}>{comment.text}</div>
-  ))}
-</div>
+    <div className="flex flex-col gap-5">
+      {comments.map(comment => (
+        <div key={comment._id} className="flex gap-2">
 
-  )
-}
+          {comment.userDetails.avatar && (
+            <ItemMedia>
+              <Image
+                src={comment.userDetails.avatar}
+                alt={comment.userDetails.avatar}
+                width={8}
+                height={8}
+                className="h-8 w-8 rounded-full object-cover border bg-secondary"
+              />
+            </ItemMedia>
+          )}
 
-export default CommentCollection
+          <div>
+            <div
+              className={`text-xs font-semibold ${
+                userId === comment.userDetails._id
+                  ? "bg-white rounded text-black px-1"
+                  : ""
+              }`}
+            >
+              @{comment.userDetails.username}
+            </div>
+
+            <div className="text-sm">{comment.text}</div>
+          </div>
+
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default CommentCollection;

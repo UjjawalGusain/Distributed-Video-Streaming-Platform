@@ -438,7 +438,7 @@ const page = () => {
                 </div>}
 
                 <div className='w-full'>
-                    <Comment videoId={videoId} />
+                    <Comment videoId={videoId} userId={videoData.ownerId} />
                 </div>
 
             </div>
@@ -446,7 +446,7 @@ const page = () => {
             <div className='lg:w-2/6 flex flex-col items-center min-w-0'>
                 <h1 className='text-xl underline text-center mt-3 truncate min-w-0'>Recommended Videos</h1>
 
-                <RelatedRecommendedVideos videoId={videoId} />
+                <RelatedRecommendedVideos videoId={videoId}/>
             </div>
         </div>
     );
