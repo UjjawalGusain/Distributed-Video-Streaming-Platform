@@ -34,7 +34,31 @@ const CommentCollection = ({
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const getTimeAgo = (parsedMs: string) => {
+    const msAgo = Date.now() - Number(parsedMs);
 
+    const seconds = Math.floor(msAgo / 1000);
+    if (seconds < 60) return seconds === 1 ? "1 second" : `${seconds} seconds`;
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes === 1 ? "1 minute" : `${minutes} minutes`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours === 1 ? "1 hour" : `${hours} hours`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) return days === 1 ? "1 day" : `${days} days`;
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return weeks === 1 ? "1 week" : `${weeks} weeks`;
+
+    const months = Math.floor(days / 30);
+    if (months < 12) return months === 1 ? "1 month" : `${months} months`;
+
+    const years = Math.floor(months / 12);
+    return years === 1 ? "1 year" : `${years} years`;
+  };
+  // const durationAgo = getTimeAgo(String(Date.parse(updatedAt)));
   const limit = 10;
 
   // RESET LOGIC — runs when user posts a new comment
@@ -89,13 +113,12 @@ const CommentCollection = ({
 
           <div>
             <div
-              className={`text-xs font-semibold ${
-                userId === comment.userDetails._id
-                  ? "bg-white rounded text-black px-1"
-                  : ""
-              }`}
+              className={`text-xs font-semibold gap-2 flex ${userId === comment.userDetails._id
+                ? "bg-white rounded text-black px-1"
+                : ""
+                }`}
             >
-              @{comment.userDetails.username}
+              @{comment.userDetails.username}  {(<div className='text-muted-foreground'>{`${getTimeAgo(String(Date.parse(comment.updatedAt)))}`} ago</div>)}
             </div>
 
             <div className="text-sm">{comment.text}</div>

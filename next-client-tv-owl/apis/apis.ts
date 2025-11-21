@@ -16,6 +16,8 @@ const APIS = {
     IS_SUBSCRIBED: `${NODE_SEVER_BASE_URL}/subscription/is-subscribed`,
     CREATE_COMMENT: `${NODE_SEVER_BASE_URL}/comment`,
     GET_COMMENTS_ON_VIDEO: `${NODE_SEVER_BASE_URL}/comment`,
+
+    GET_USER: `${NODE_SEVER_BASE_URL}/user`, //:userId
 }
 
 
