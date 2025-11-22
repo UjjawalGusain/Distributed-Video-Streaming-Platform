@@ -29,6 +29,21 @@ const RelatedRecommendedVideoCard = ({
     shortDescription,
 }: LittleCardPostProps) => {
     const router = useRouter();
+
+    const formatDuration = (totalSeconds: number): string => {
+        if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return "0:00";
+
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = Math.floor(totalSeconds % 60);
+
+        if (hours > 0) {
+            return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        } else {
+            return `${minutes}:${String(seconds).padStart(2, "0")}`;
+        }
+    }
+
     const getTimeAgo = (parsedMs: string) => {
         const msAgo = Date.now() - Number(parsedMs);
 
@@ -77,6 +92,8 @@ const RelatedRecommendedVideoCard = ({
                         sizes="(min-width: 1024px) 128px, 300px"
                         loading="eager"
                     />
+                    <div className="absolute bottom-1 right-1 bg-muted px-1 py-0.5 text-sm font-semibold rounded-xs">{formatDuration(duration)}</div>
+
                 </div>
 
                 <div className="flex gap-2 items-start flex-1 min-w-0 mx-4">
@@ -86,7 +103,7 @@ const RelatedRecommendedVideoCard = ({
                             alt={`${username} avatar`}
                             width={32}
                             height={32}
-                            className="h-9 w-9 rounded-full object-cover border bg-secondary"
+                            className="h-9 w-9 rounded-full object-cover border bg-secondary "
                         />
                     </ItemMedia>
 

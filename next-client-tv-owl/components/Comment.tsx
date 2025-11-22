@@ -22,7 +22,7 @@ const Comment = ({ videoId, userId }: { videoId: string; userId: string }) => {
 
         const jwt = session?.user?.jwt;
         if (!jwt) {
-            toast.error("Missing authentication token");
+            toast.error("Login first to comment");
             return;
         }
 
