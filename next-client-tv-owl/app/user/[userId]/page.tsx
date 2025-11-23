@@ -14,6 +14,7 @@ interface UserInterface {
   avatar: string | "";
   isPremium: string;
   email: string;
+  subscriberCount: number;
 }
 
 export default function Page() {
@@ -38,7 +39,7 @@ export default function Page() {
   if (!user) return <Loading />;
 
   return (
-    <div className='flex flex-col w-full px-14'>
+    <div className='flex flex-col w-full px-10'>
       <div className='flex gap-3 items-center'>
         <div>
           {user?.avatar && (
@@ -58,7 +59,7 @@ export default function Page() {
           <div className='flex items-center gap-1'>
             <div className='text-sm'>{user.email}</div> 
             •
-            <div className='text-sm text-muted-foreground'>343 subscribers</div>
+            <div className='text-sm text-muted-foreground'>{user.subscriberCount} subscribers</div>
           </div>
         </div>
       </div>

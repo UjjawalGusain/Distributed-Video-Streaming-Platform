@@ -2,6 +2,8 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import { useEffect } from 'react';
 import { useRef } from 'react';
+import 'videojs-hls-quality-selector';
+import 'videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css';
 
 export const VideoPlayer = (props) => {
   const videoRef = useRef(null);
@@ -20,6 +22,12 @@ export const VideoPlayer = (props) => {
 
       const player = (playerRef.current = videojs(videoElement, options, () => {
         videojs.log("player is ready");
+        if (player.hlsQualitySelector) {
+        player.hlsQualitySelector({
+          displayCurrentQuality: true
+        });
+      }
+
         onReady && onReady(player);
       }));
 

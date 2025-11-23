@@ -1,5 +1,5 @@
 'use client';
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import VideoPlayer from "@/components/VideoPlayer";
 import { useRef } from 'react'
@@ -71,6 +71,8 @@ const page = () => {
     const [userReaction, setUserReaction] = useState<"Like" | "Dislike" | null>(null);
     const [expandedShortDescription, setExpandedShortDescription] = useState(false);
     const [expandedLongDescription, setExpandedLongDescription] = useState(false);
+
+    const router = useRouter();
 
     const shortDescription = videoData?.shortDescription || "";
     const isShortDescriptionLonger = shortDescription.length > MAX_CHARS_SHORT;
@@ -217,14 +219,23 @@ const page = () => {
         responsive: true,
         fluid: true,
         sources: [
-            {
-                src: videoData.url,
-                type: "application/x-mpegURL"
-            }
-        ]
+        {
+            src: videoData.url, // master playlist for auto resolution
+            type: "application/x-mpegURL",
+            label: "Auto"
+        },
+
+        ...videoData.formats.map((f) => ({
+            src: f.url,
+            type: "application/x-mpegURL",
+            label: f.resolution
+        }))
+    ]
     };
 
     const handlePlayerReady = (player: Player) => {
+        console.log(videoData);
+        
         playerRef.current = player;
         player.on("waiting", () => console.log("player is waiting"));
         player.on("dispose", () => console.log("player will dispose"));
@@ -246,7 +257,7 @@ const page = () => {
                     </div>
 
                     <div className='flex gap-1 w-full items-center justify-between'>
-                        <div className='flex gap-2 items-center'>
+                        <div className='flex gap-2 items-center hover:cursor-pointer' onClick={() => { router.push(`/user/${videoData.ownerId}`) }}>
 
                             {videoData?.avatar && (
                                 <ItemMedia>
@@ -277,7 +288,7 @@ const page = () => {
                         </div>
 
                         <div className="gap-4 items-center flex ">
-                            <ButtonGroup>
+                            <ButtonGroup className='hidden sm:flex '>
                                 <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to like videos">
                                     <Button
                                         variant={userReaction === "Like" ? "default" : "outline"}
@@ -319,6 +330,33 @@ const page = () => {
                                             </Button>
                                         </DisabledTooltip>
                                     </div>
+
+                                    <div className="px-2 py-1">
+                                        <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to like videos">
+                                            <Button
+                                                variant={userReaction === "Like" ? "default" : "outline"}
+                                                onClick={() => handleReaction("Like")}
+                                                disabled={!isUserLoggedIn}
+                                                className="w-full justify-start p-0"
+                                            >
+                                                <FcLike /> {likes} {likes === 1 ? "Like" : "Likes"}
+                                            </Button>
+                                        </DisabledTooltip>
+                                    </div>
+
+                                    <div className="px-2 py-1">
+                                        <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to dislike videos">
+                                            <Button
+                                                variant={userReaction === "Dislike" ? "default" : "outline"}
+                                                onClick={() => handleReaction("Dislike")}
+                                                disabled={!isUserLoggedIn}
+                                                className="w-full justify-start p-0"
+                                            >
+                                                <FcDislike /> {dislikes} {dislikes === 1 ? "Dislike" : "Dislikes"}
+                                            </Button>
+                                        </DisabledTooltip>
+                                    </div>
+
 
                                     <div className="px-2 py-1">
                                         <DisabledTooltip disabled={!isUserLoggedIn} label="Sign in to comment">
@@ -446,7 +484,7 @@ const page = () => {
             <div className='lg:w-2/6 flex flex-col items-center min-w-0'>
                 <h1 className='text-xl underline text-center mt-3 truncate min-w-0'>Recommended Videos</h1>
 
-                <RelatedRecommendedVideos videoId={videoId}/>
+                <RelatedRecommendedVideos videoId={videoId} />
             </div>
         </div>
     );

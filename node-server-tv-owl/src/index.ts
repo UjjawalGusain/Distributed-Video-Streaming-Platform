@@ -9,6 +9,7 @@ import reactionRouter from "./routes/reaction.route"
 import subscriptionRouter from "./routes/subscription.route"
 import commentRouter from "./routes/comment.route"
 import userRouter from "./routes/user.route"
+import notificationRouter from "./routes/notification.route"
 
 const app = express()
 dbConnect();
@@ -29,6 +30,7 @@ app.use('/api/reaction', reactionRouter);
 app.use('/api/subscription', subscriptionRouter);
 app.use('/api/comment', commentRouter);
 app.use('/api/user', userRouter);
+app.use('/api/notification', notificationRouter);
 
 
 const PORT = process.env.PORT || 5000;

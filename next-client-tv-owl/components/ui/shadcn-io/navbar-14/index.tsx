@@ -175,7 +175,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
               {/* RIGHT SECTION */}
               <div className="flex items-center gap-3">
 
-                {!session ? <SignInButton /> : <SignOutButton />}
+                <div className='w-fit hidden sm:flex'>{!session ? <SignInButton /> : <SignOutButton />}</div>
 
                 <Button
                   size="icon"
@@ -220,7 +220,11 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 )}
 
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-sans text-foreground tracking-tight underline underline-offset-2 text-nowrap">
+                  <span className={`text-sm font-sans text-foreground tracking-tight underline underline-offset-2 text-nowrap` + (session?.user ? " hover:cursor-pointer" : "")}
+                    onClick={() => {
+                      if (!session?.user) return;
+                      router.push(`/user/${session?.user?.id}`)
+                    }}>
                     {username}
                   </span>
 
@@ -228,10 +232,11 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                     <ItemMedia>
                       <Image
                         src={session.user.avatar}
-                        className="h-9 w-9 rounded-full bg-secondary object-contain border"
+                        className="h-9 w-9 rounded-full bg-secondary object-contain border hover:cursor-pointer"
                         alt=""
                         height={32}
                         width={32}
+                        onClick={() => { router.push(`/user/${session?.user?.id}`) }}
                       />
                     </ItemMedia>
                   )}
@@ -243,6 +248,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                         alt=""
                         height={32}
                         width={32}
+
                       />
                     </ItemMedia>
                   )}

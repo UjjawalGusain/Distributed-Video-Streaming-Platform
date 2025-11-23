@@ -1,6 +1,8 @@
 import { SQSClient, SendMessageCommand, ReceiveMessageCommand, DeleteMessageCommand } from "@aws-sdk/client-sqs";
 import CompletionService from "./completionService";
 import knockClient from "../external/knock";
+import axios from "axios";
+import APIS from "../apis";
 
 
 export interface CompletionMessageInterface {
@@ -149,10 +151,18 @@ class CompletionHandlerService {
                 data: payload,
             });
 
+            const notificationResponse = await axios.post(APIS.CREATE_NOTIFICATION, {
+                userId: completionObject.userId,
+                message: `Your video title: ${payload.video_title} uploaded successfully`,
+                url: `https://demo_video_url.com`
+            })
+
             console.log(
                 `Completed ${isSuccess ? "successful" : "failed"} publishing for videoId: ${completionObject.videoId}`
             );
 
+            console.log(`Notification also sent`);
+            
             return response;
         } catch (error) {
             console.error(`Error processing videoId ${completionObject.videoId}:`, error);

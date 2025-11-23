@@ -113,7 +113,7 @@ const CommentCollection = ({
 
           <div>
             <div
-              className={`text-xs font-semibold gap-2 flex ${userId === comment.userDetails._id
+              className={`text-xs font-semibold gap-2 w-fit flex ${userId === comment.userDetails._id
                 ? "bg-white rounded text-black px-1"
                 : ""
                 }`}
