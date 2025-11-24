@@ -61,7 +61,7 @@ export const NotificationMenu = React.forwardRef<
           ref={ref}
           size="icon"
           variant="ghost"
-          className="text-muted-foreground relative size-8 rounded-full shadow-none  hidden lg:block"
+          className="text-muted-foreground relative size-8 rounded-full shadow-none  hidden lg:flex justify-center items-center"
           aria-label="Notifications"
         >
           <BellIcon size={16} aria-hidden="true" />

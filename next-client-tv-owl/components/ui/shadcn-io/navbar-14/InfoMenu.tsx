@@ -27,7 +27,7 @@ export const InfoMenu = React.forwardRef<
           ref={ref}
           size="icon"
           variant="ghost"
-          className="text-muted-foreground size-8 rounded-full shadow-none  hidden lg:block"
+          className="text-muted-foreground size-8 rounded-full shadow-none  hidden lg:flex justify-center items-center"
           aria-label="Information menu"
         >
           <InfoIcon size={16} aria-hidden="true" />

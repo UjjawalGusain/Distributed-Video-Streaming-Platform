@@ -162,15 +162,17 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 <div className="absolute inset-y-0 start-2 flex items-center pointer-events-none text-muted-foreground/70">
                   <SearchIcon size={16} />
                 </div>
+                
               </div>
 
               {/* Mobile Search Button */}
               <button
-                className="sm:hidden p-2 rounded-full text-muted-foreground hover:bg-muted/30 transition-colors"
+                className="sm:hidden rounded-full text-muted-foreground hover:bg-muted/30 transition-colors"
                 onClick={() => setShowMobileSearch(true)}
               >
-                <SearchIcon size={40} className=" p-2 text-foreground" />
+                <SearchIcon size={40} className="text-foreground" />
               </button>
+              
 
               {/* RIGHT SECTION */}
               <div className="flex items-center gap-3">
@@ -182,7 +184,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                   variant="ghost"
                   aria-label="Toggle theme"
                   onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                  className="rounded-full hover:bg-muted/30 transition-colors hidden lg:block"
+                  className="rounded-full hover:bg-muted/30 transition-colors hidden lg:flex justify-center items-center"
                 >
                   {theme === 'dark' ? <SunIcon size={16} /> : <MoonIcon size={16} />}
                 </Button>
@@ -201,7 +203,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                     <Button
                       size="icon"
                       variant="default"
-                      className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md hidden lg:flex"
+                      className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md hidden lg:flex justify-center items-center"
                       aria-label="Add"
                     >
                       <PlusIcon size={16} />
@@ -211,7 +213,7 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                   <Button
                     size="icon"
                     variant="default"
-                    className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md hidden lg:flex justify-center"
+                    className="rounded-full bg-primary/90 hover:bg-primary transition-all shadow-md hidden lg:flex justify-center items-center "
                     aria-label="Add"
                     onClick={onAddClickWithoutSignedIn}
                   >

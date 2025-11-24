@@ -38,6 +38,35 @@ class NotificationController {
                 .json(failure(500, "Error while creating new notification"));
         }
     }
+
+    async getComments(req: Request, res: Response) {
+        try {
+            const userId = req?.user?.id;
+
+            if (!userId || !Types.ObjectId.isValid(userId as string)) {
+                return res.status(400).json(failure(400, "Invalid userId"));
+            }
+
+            const page = Number(req.query.page ?? 1);
+            const limit = Number(req.query.limit ?? 10);
+
+            const notifications = await NotificationModel.aggregate([
+                {
+                    $match: {
+                        userId: new Types.ObjectId(userId as string),
+                    },
+                },
+                { $sort: { createdAt: -1 } },
+                { $skip: (page - 1) * limit },
+                { $limit: limit },
+            ])
+
+            return res.status(200).json(success(200, { notifications }));
+
+        } catch (error) {
+            return res.status(500).json(failure(500, "Internal error while fetching latest notifications"));
+        }
+    }
 }
 
 export default new NotificationController();

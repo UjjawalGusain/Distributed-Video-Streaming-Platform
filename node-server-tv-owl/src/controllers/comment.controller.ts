@@ -109,7 +109,7 @@ class CommentController {
 
             return res.status(200).json(success(200, { comments }));
         } catch (err) {
-            return res.status(500).json(failure(500, "Internal error"));
+            return res.status(500).json(failure(500, "Internal error while fetching comments"));
         }
     }
 
