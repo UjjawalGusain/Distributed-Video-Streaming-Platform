@@ -49,7 +49,6 @@ export default function CardPost({
   }
 
   const getTimeAgo = (parsedMs: string) => {
-    console.log(parsedMs);
     
     const msAgo = Date.now() - Number(parsedMs);
 

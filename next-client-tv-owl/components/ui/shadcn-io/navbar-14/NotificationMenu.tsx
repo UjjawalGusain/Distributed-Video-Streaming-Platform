@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { BellIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { NotificationInterface } from '@/app/notification/page'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,47 +13,44 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
-export interface NotificationMenuProps {
-  notifications?: Array<{
-    id: string;
-    title: string;
-    message: string;
-    time: string;
-    unread?: boolean;
-  }>;
-  onNotificationClick?: (notificationId: string) => void;
+interface NotificationMenuProps {
+  notifications: NotificationInterface[];
+  onNotificationClick?: (id: string) => void;
 }
-
-const defaultNotifications = [
-  {
-    id: '1',
-    title: 'New message',
-    message: 'You have a new message from John',
-    time: '2 min ago',
-    unread: true,
-  },
-  {
-    id: '2',
-    title: 'Project updated',
-    message: 'The project was successfully updated',
-    time: '1 hour ago',
-    unread: true,
-  },
-  {
-    id: '3',
-    title: 'Task completed',
-    message: 'Your task has been marked as complete',
-    time: '3 hours ago',
-    unread: false,
-  },
-];
 
 export const NotificationMenu = React.forwardRef<
   HTMLButtonElement,
   NotificationMenuProps
->(({ notifications = defaultNotifications, onNotificationClick }, ref) => {
-  const unreadCount = notifications.filter(n => n.unread).length;
+>(({ notifications, onNotificationClick }, ref) => {
+  const router = useRouter();
+  const unreadCount = notifications.length;
+  const getTimeAgo = (parsedMs: string) => {
+    console.log(parsedMs)
+    const msAgo = Date.now() - Number(parsedMs);
+
+    const seconds = Math.floor(msAgo / 1000);
+    if (seconds < 60) return seconds === 1 ? "1 second" : `${seconds} seconds`;
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes === 1 ? "1 minute" : `${minutes} minutes`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours === 1 ? "1 hour" : `${hours} hours`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) return days === 1 ? "1 day" : `${days} days`;
+
+    const weeks = Math.floor(days / 7);
+    if (weeks < 4) return weeks === 1 ? "1 week" : `${weeks} weeks`;
+
+    const months = Math.floor(days / 30);
+    if (months < 12) return months === 1 ? "1 month" : `${months} months`;
+
+    const years = Math.floor(months / 12);
+    return years === 1 ? "1 year" : `${years} years`;
+  };
 
   return (
     <DropdownMenu>
@@ -66,8 +64,8 @@ export const NotificationMenu = React.forwardRef<
         >
           <BellIcon size={16} aria-hidden="true" />
           {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
+            <Badge
+              variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
             >
               {unreadCount}
@@ -80,36 +78,30 @@ export const NotificationMenu = React.forwardRef<
         <DropdownMenuSeparator />
         {notifications.map((notification) => (
           <DropdownMenuItem
-            key={notification.id}
+            key={notification._id}
             className="flex flex-col items-start p-3 cursor-pointer"
             onClick={() => {
               if (onNotificationClick) {
-                onNotificationClick(notification.id);
+                onNotificationClick(notification._id);
               }
             }}
           >
             <div className="flex items-start justify-between w-full">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium leading-none">
-                    {notification.title}
-                  </p>
-                  {notification.unread && (
-                    <div className="h-2 w-2 rounded-full bg-blue-600 shrink-0" />
-                  )}
                 </div>
                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                   {notification.message}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {notification.time}
+                  {getTimeAgo(String(Date.parse(notification.createdAt)))}
                 </p>
               </div>
             </div>
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-center justify-center">
+        <DropdownMenuItem className="text-center justify-center hover:cursor-pointer" onClick={() => {router.push('/notification')}}>
           View all notifications
         </DropdownMenuItem>
       </DropdownMenuContent>

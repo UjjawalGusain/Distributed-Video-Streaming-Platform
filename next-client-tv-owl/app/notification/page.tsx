@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react'
 import { toast } from 'sonner';
 import APIS from '@/apis/apis';
 
-interface NotficationInterface {
+export interface NotificationInterface {
     _id: string;
     userId: string;
     message: string;
@@ -21,7 +21,7 @@ const page = () => {
     const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [notifications, setNotifications] = useState<NotficationInterface[]>([]);
+    const [notifications, setNotifications] = useState<NotificationInterface[]>([]);
 
     const limit = 10;
     useEffect(() => {
@@ -62,7 +62,9 @@ const page = () => {
 
     return (
         <div>
-
+            {notifications.map(notification => (
+                <div>{notification.message}</div>
+            ))}
         </div>
     )
 }

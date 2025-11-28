@@ -49,12 +49,18 @@ class NotificationController {
 
             const page = Number(req.query.page ?? 1);
             const limit = Number(req.query.limit ?? 10);
+            const unseen = (req.query.unseen ?? "false") === "true";
+            const match: any = {
+                userId: new Types.ObjectId(userId as string),
+            };
+
+            if (unseen) {
+                match.seen = false; // only unseen
+            }
 
             const notifications = await NotificationModel.aggregate([
                 {
-                    $match: {
-                        userId: new Types.ObjectId(userId as string),
-                    },
+                    $match: match
                 },
                 { $sort: { createdAt: -1 } },
                 { $skip: (page - 1) * limit },

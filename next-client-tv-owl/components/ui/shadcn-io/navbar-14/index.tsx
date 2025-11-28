@@ -24,17 +24,12 @@ import { useRouter } from 'next/navigation';
 import Loading from '@/app/loading';
 import Image from 'next/image';
 import { ItemMedia } from '../../item';
+import { NotificationInterface } from '@/app/notification/page';
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   searchPlaceholder?: string;
   searchValue?: string;
-  notifications?: Array<{
-    id: string;
-    title: string;
-    message: string;
-    time: string;
-    unread?: boolean;
-  }>;
+  notifications: Array<NotificationInterface>;
   onSearchChange?: (value: string) => void;
   onLayoutClick?: () => void;
   onAddClickWithLoggedIn?: () => void;
@@ -69,7 +64,6 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
     const [showMobileSearch, setShowMobileSearch] = useState(false);
     const router = useRouter();
     const username = session?.user?.username ?? "Anonymous";
-    const avatarSrc = session?.user?.image ?? "/default_avatar_light.png";
 
     useEffect(() => setMounted(true), []);
 
