@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { BellIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { NotificationInterface } from '@/app/notification/page'
+import { NotificationInterface } from '.';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,21 +13,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { useRouter } from 'next/navigation';
 
 interface NotificationMenuProps {
   notifications: NotificationInterface[];
   onNotificationClick?: (id: string) => void;
+  getLatestNotifications: () => void;
+  hasMoreNotifications: Boolean;
 }
 
 export const NotificationMenu = React.forwardRef<
   HTMLButtonElement,
   NotificationMenuProps
->(({ notifications, onNotificationClick }, ref) => {
-  const router = useRouter();
+>(({ notifications, onNotificationClick, getLatestNotifications, hasMoreNotifications }, ref) => {
   const unreadCount = notifications.length;
   const getTimeAgo = (parsedMs: string) => {
-    console.log(parsedMs)
     const msAgo = Date.now() - Number(parsedMs);
 
     const seconds = Math.floor(msAgo / 1000);
@@ -101,9 +100,15 @@ export const NotificationMenu = React.forwardRef<
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-center justify-center hover:cursor-pointer" onClick={() => {router.push('/notification')}}>
-          View all notifications
-        </DropdownMenuItem>
+        {hasMoreNotifications ? (<DropdownMenuItem className="text-center justify-center hover:cursor-pointer"
+          onClick={(e) => {
+            e.preventDefault();
+            getLatestNotifications();
+          }}>
+          View more notifications
+        </DropdownMenuItem>) : (<DropdownMenuItem className="text-center justify-center" disabled>
+          No more notifications!
+        </DropdownMenuItem>)}
       </DropdownMenuContent>
     </DropdownMenu>
   );

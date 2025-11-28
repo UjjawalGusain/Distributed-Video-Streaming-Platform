@@ -7,7 +7,9 @@ import VideoModel from '../models/Video';
 import VideoMetadataModel from '../models/Metadata';
 import axios from "axios";
 import APIS from '../apis';
-// import PreTranscodingQueue from '../external/PreTranscodingQueue';
+import mongoose from 'mongoose';
+import { deleteS3File } from '../utils/deleteFileFromS3';
+import { deleteS3Folder } from '../utils/deleteFolderFromS3';
 
 interface startUploadResponse {
     uploadId: string;
@@ -32,6 +34,17 @@ interface getVideoResponse {
 interface AuthenticatedRequest extends Request {
     user?: any;
 }
+
+function extractS3KeyFromUrl(url: string): string | null {
+    try {
+        const decoded = decodeURIComponent(url);
+        const splitIndex = decoded.indexOf(".com/") + 5;
+        return decoded.substring(splitIndex);
+    } catch {
+        return null;
+    }
+}
+
 
 class VideoController {
 
@@ -65,6 +78,7 @@ class VideoController {
             return res.status(404).json(failure(404, "Could not find video"));
         }
 
+
         const { _id, ...existingVideoWithoutId } = existingVideo.toObject();
 
         const payload = {
@@ -79,7 +93,7 @@ class VideoController {
         const { title, shortDescription, longDescription, tags, duration, originalVideoUrl } = req.body;
 
         const userId = req?.user?.id;
-        if(!userId) {
+        if (!userId) {
             return res.status(401).json(failure(401, "No jwt token provided"));
         }
 
@@ -189,7 +203,7 @@ class VideoController {
     async startUpload(req: AuthenticatedRequest, res: Response<ApiResponse<startUploadResponse>>) {
 
         const userId = req?.user?.id;
-        if(!userId) {
+        if (!userId) {
             return res.status(401).json(failure(401, "No jwt token provided"));
         }
         const existingUser = await UserModel.findById(userId);
@@ -225,7 +239,7 @@ class VideoController {
     async partUpload(req: Request, res: Response<ApiResponse<partUploadResponse>>) {
         const { fileName, partNumber, uploadId, fileChunk } = req.body;
         console.log("filename: ", `original_videos/${fileName}`);
-        
+
         const params = {
             Bucket: S3_BUCKET,
             Key: `original_videos/${fileName}`,
@@ -287,6 +301,80 @@ class VideoController {
             return res.status(500).json(failure(500, `Video complete upload failed with error: ${error}`))
         }
     }
+
+    async deleteVideo(req: Request, res: Response) {
+
+        async function deleteVideoAssetsFromS3(userId: string, videoId: string, originalUrl?: string) {
+            await deleteS3Folder(`transcoded_videos/${userId}/${videoId}/`);
+            await deleteS3Folder(`thumbnails/${videoId}/`);
+
+            if (originalUrl) {
+                const key = extractS3KeyFromUrl(originalUrl);
+                if (key) await deleteS3File(key);
+            }
+        }
+
+        const session = await mongoose.startSession();
+
+        try {
+            session.startTransaction();
+
+            const userId = req.user?.id;
+            const { videoId } = req.body;
+
+            if (!userId) {
+                await session.abortTransaction();
+                return res.status(401).json(failure(401, "No jwt token provided"));
+            }
+
+            if (!videoId || !mongoose.Types.ObjectId.isValid(videoId)) {
+                await session.abortTransaction();
+                return res.status(400).json(failure(400, "Invalid videoId"));
+            }
+
+            const user = await UserModel.findById(userId).session(session);
+            if (!user) {
+                await session.abortTransaction();
+                return res.status(404).json(failure(404, "User not found"));
+            }
+
+            const video = await VideoModel.findOne({ _id: videoId, userId }).session(session);
+            if (!video) {
+                await session.abortTransaction();
+                return res.status(403).json(failure(403, "Not allowed to delete this video"));
+            }
+
+            const originalVideoUrl = video.originalVideoUrl;
+
+            const deleteVideoResult = await VideoModel.deleteOne({ _id: videoId }).session(session);
+            if (deleteVideoResult.deletedCount === 0) {
+                await session.abortTransaction();
+                return res.status(404).json(failure(404, "Video not found"));
+            }
+
+            const deleteMeta = await VideoMetadataModel.deleteOne({ videoId }).session(session);
+            if (deleteMeta.deletedCount === 0) {
+                await session.abortTransaction();
+                return res.status(404).json(failure(404, "Video metadata not found"));
+            }
+
+            await session.commitTransaction();
+
+            setImmediate(async () => {
+                await deleteVideoAssetsFromS3(userId, videoId, originalVideoUrl);
+            });
+
+            return res.status(200).json(success(200, "Video deleted successfully"));
+
+        } catch (error) {
+            await session.abortTransaction();
+            return res.status(500).json(failure(500, `Error deleting video: ${error}`));
+        } finally {
+            session.endSession();
+        }
+    }
+
+
 
 };
 

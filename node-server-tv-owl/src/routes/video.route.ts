@@ -21,6 +21,10 @@ router.post("/submit-video",
 router.get("/:videoId", VideoController.getVideo);
 router.patch("/publish-formats", 
     // verifyNextAuth, 
-    VideoController.addVideoUrl)
+    VideoController.addVideoUrl);
+
+router.delete("/", 
+    verifyNextAuth, 
+    VideoController.deleteVideo);
 
 export default router;

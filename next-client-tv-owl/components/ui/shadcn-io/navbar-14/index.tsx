@@ -24,7 +24,16 @@ import { useRouter } from 'next/navigation';
 import Loading from '@/app/loading';
 import Image from 'next/image';
 import { ItemMedia } from '../../item';
-import { NotificationInterface } from '@/app/notification/page';
+
+export interface NotificationInterface {
+    _id: string;
+    userId: string;
+    message: string;
+    seen: boolean;
+    updatedAt: string;
+    createdAt: string;
+    url: string | null;
+};
 
 export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   searchPlaceholder?: string;
@@ -36,6 +45,8 @@ export interface Navbar14Props extends React.HTMLAttributes<HTMLElement> {
   onInfoItemClick?: (item: string) => void;
   onNotificationClick?: (notificationId: string) => void;
   onSettingsItemClick?: (item: string) => void;
+  getLatestNotifications: () => void;
+  hasMoreNotifications: Boolean;
   addLink: string;
 }
 
@@ -51,8 +62,10 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
       onInfoItemClick,
       onNotificationClick,
       onSettingsItemClick,
+      hasMoreNotifications,
       addLink,
       children,
+      getLatestNotifications,
       ...props
     },
     ref
@@ -188,6 +201,8 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                 <NotificationMenu
                   notifications={notifications}
                   onNotificationClick={onNotificationClick}
+                  getLatestNotifications={getLatestNotifications}
+                  hasMoreNotifications={hasMoreNotifications}
                 />
 
                 <SettingsMenu onItemClick={onSettingsItemClick} />

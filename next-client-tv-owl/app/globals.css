@@ -4,6 +4,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --removed-body-scroll-bar-size: 0px !important;
+}
+
+html {
+  overflow-y: scroll;
+}
+
+
+:root {
   font-family: var(--font-outfit), sans-serif;
 
   --background: oklch(0.98 0.015 95);

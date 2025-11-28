@@ -1,7 +1,7 @@
 'use client';
 import React, {useEffect, useState} from 'react'
 import { Navbar14 } from '@/components/ui/shadcn-io/navbar-14';
-import { NotificationInterface } from '@/app/notification/page';
+import { NotificationInterface } from '@/components/ui/shadcn-io/navbar-14';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import axios from 'axios';
@@ -11,12 +11,11 @@ import APIS from '@/apis/apis';
 const Header = ({ children }: { children: React.ReactNode }) => {
   const {data: session, status} = useSession();
   const [notifications, setNotifications] = useState<NotificationInterface[]>([]);
-  const limit = 5;
-  useEffect(() => {
-    if (status !== "authenticated") return;
-    console.log("Is authenticated");
+  const [hasMoreNotifications, setHasMoreNotifications] = useState(true);
+  const limit = 8;
+  const [currPage, setCurrPage] = useState(1);
 
-    const getLastestNotifications = async () => {
+  const getLatestNotifications = async () => {
       const jwt = session?.user?.jwt;
 
       if (!jwt) {
@@ -25,7 +24,7 @@ const Header = ({ children }: { children: React.ReactNode }) => {
       }
       const unseenNotfications = (await axios.get(APIS.GET_NOTIFICATIONS_FOR_USER, {
         params: {
-          page: 1,
+          page: currPage,
           limit,
           unseen: "true",
         },
@@ -33,13 +32,28 @@ const Header = ({ children }: { children: React.ReactNode }) => {
           Authorization: `Bearer ${jwt}`,
         }
       })).data.data.notifications
-      setNotifications(unseenNotfications);
+
+      if(unseenNotfications.length < limit) {
+        setHasMoreNotifications(false);
+        if(unseenNotfications.length === 0) return;
+      }
+
+      setNotifications(prev => {
+        const combined = [...prev, ...unseenNotfications];
+        return Array.from(new Map(combined.map(v => [v._id, v])).values());
+      });
+      setCurrPage(currPage + 1);
     }
-    getLastestNotifications();
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    getLatestNotifications();
   }, [status, session])
+
+
   return (
     <div className="relative w-full">
-      <Navbar14 searchPlaceholder="Search for video" addLink="/uploadVideo" notifications={notifications}>
+      <Navbar14 searchPlaceholder="Search for video" addLink="/uploadVideo" notifications={notifications} getLatestNotifications={getLatestNotifications} hasMoreNotifications={hasMoreNotifications}>
         {children}
       </Navbar14>
     </div>
