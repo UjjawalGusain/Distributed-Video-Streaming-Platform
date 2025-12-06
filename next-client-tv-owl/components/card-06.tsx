@@ -9,6 +9,17 @@ import {
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { CreditCard } from "lucide-react";
+import axios from "axios";
+import APIS from "@/apis/apis";
+
 
 interface CardPostProps {
   title: string;
@@ -20,6 +31,8 @@ interface CardPostProps {
   username: string;
   avatar: string;
   videoId: string;
+  userId?: string;
+  onDelete?: (id: string) => void;
 }
 
 export default function CardPost({
@@ -32,7 +45,11 @@ export default function CardPost({
   username,
   avatar,
   videoId,
+  userId,
+  onDelete,
 }: CardPostProps) {
+
+  const { data: session, status } = useSession();
 
   const formatDuration = (totalSeconds: number): string => {
     if (!Number.isFinite(totalSeconds) || totalSeconds < 0) return "0:00";
@@ -49,7 +66,6 @@ export default function CardPost({
   }
 
   const getTimeAgo = (parsedMs: string) => {
-    
     const msAgo = Date.now() - Number(parsedMs);
 
     const seconds = Math.floor(msAgo / 1000);
@@ -71,17 +87,38 @@ export default function CardPost({
     if (months < 12) return months === 1 ? "1 month" : `${months} months`;
 
     const years = Math.floor(months / 12);
+
     return years === 1 ? "1 year" : `${years} years`;
   };
 
   const durationAgo = getTimeAgo(String(Date.parse(updatedAt)));
 
-
   const router = useRouter();
+
+  const deleteVideo = async () => {
+
+    const jwt = session?.user?.jwt;
+    if(!jwt) {
+      console.log("No JWT");
+      return;
+    }
+
+    await axios.delete(`${APIS.DELETE_VIDEO}`, {
+      data: {
+        videoId,
+      }, headers: {
+        Authorization: `Bearer ${jwt}`,
+      },
+    })
+
+    onDelete?.(videoId);
+  }
+
   return (
-    <Card className="w-full max-w-xl md:max-w-96 min-w-60 lg:min-w-72 flex-1 shrink shadow-none py-0 gap-0 rounded-md hover:opacity-65 hover:cursor-pointer transition-opacity duration-200" onClick={() => { router.push(`/home/${videoId}`) }}>
+    <Card className="w-full max-w-xl md:max-w-96 min-w-60 lg:min-w-72 flex-1 shrink shadow-none py-0 gap-0 rounded-md hover:opacity-65 hover:cursor-pointer transition-opacity duration-200 relative" onClick={() => { router.push(`/home/${videoId}`) }}>
 
       <CardContent className="p-0">
+
 
         <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
           <Image
@@ -93,6 +130,29 @@ export default function CardPost({
             loading="eager"
           />
           <div className="absolute text-xs bg-muted p-0.5 px-1 bottom-1 right-1 rounded-xs font-semibold">{formatDuration(duration)}</div>
+          {status === "authenticated" && session.user.id === userId && (<DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div
+                className="absolute text-xs bg-muted py-0.5 px-1 top-1 right-1 rounded-xs font-semibold hover:bg-transparent transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CreditCard size={17} />
+              </div>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              className="w-40"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* <DropdownMenuItem onClick={() => console.log("Edit")}>
+                Edit
+              </DropdownMenuItem> */}
+              <DropdownMenuItem onClick={deleteVideo}>
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>)}
+
         </div>
         <div className="py-5 px-2 flex justify-start items-start gap-2 ">
           <ItemMedia>

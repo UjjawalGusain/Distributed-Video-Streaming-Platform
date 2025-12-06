@@ -90,7 +90,7 @@ const Page = () => {
         return () => observer.disconnect();
     }, [loading, hasMore]);
 
-    if (videos.length === 0) return null;
+    if (videos.length === 0) return <Loading />;
 
     return (
         <>

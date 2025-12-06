@@ -21,6 +21,7 @@ const APIS = {
     GET_USER: `${NODE_SEVER_BASE_URL}/user`, //:userId
 
     DELETE_VIDEO: `${NODE_SEVER_BASE_URL}/video`,
+    GET_USER_VIDEOS: `${NODE_SEVER_BASE_URL}/video-metadata/user-videos`, //:userId
 
 }
 

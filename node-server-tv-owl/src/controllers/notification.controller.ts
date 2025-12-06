@@ -5,7 +5,7 @@ import { Types } from "mongoose";
 import NotificationModel from "../models/Notification";
 
 class NotificationController {
-    async addComment(req: Request, res: Response) {
+    async addNotification(req: Request, res: Response) {
         try {
             const { userId, message, url } = req.body;
 
@@ -39,7 +39,7 @@ class NotificationController {
         }
     }
 
-    async getComments(req: Request, res: Response) {
+    async getNotifications(req: Request, res: Response) {
         try {
             const userId = req?.user?.id;
 

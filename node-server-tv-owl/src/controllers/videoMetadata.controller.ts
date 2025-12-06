@@ -4,24 +4,25 @@ import UserModel from '../models/User';
 import VideoMetadataModel from '../models/Metadata';
 import recommendationService from '../services/recommendationService';
 import trendingVideoService from '../services/trendingVideoService';
+import mongoose from 'mongoose';
 
 interface getVideoMetadataResponse {
 
 }
 
 export interface VideoMetadata {
-  _id: string;
-  videoId: string;
-  userId: string;
-  title: string;
-  shortDescription: string;
-  thumbnail?: string;
-  views: number;
-  duration: number;
-  isPublished: boolean;
-  isUploaded: boolean;
-  createdAt: string;
-  updatedAt: string;
+    _id: string;
+    videoId: string;
+    userId: string;
+    title: string;
+    shortDescription: string;
+    thumbnail?: string;
+    views: number;
+    duration: number;
+    isPublished: boolean;
+    isUploaded: boolean;
+    createdAt: string;
+    updatedAt: string;
 }
 
 
@@ -61,7 +62,7 @@ class VideoMetadataController {
         const { videoId } = req.params;
 
         const existingMetadata = await VideoMetadataModel.findOne({ videoId })
-                                .populate('userId', 'username avatar email');
+            .populate('userId', 'username avatar email');
         if (!existingMetadata) {
             return res.status(404).json(failure(404, "Could not find video metadata"));
         }
@@ -76,15 +77,66 @@ class VideoMetadataController {
         return res.status(200).json(success(200, payload, "Get video metadata successful"));
     }
 
+    async getUserVideos(req: Request, res: Response) {
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+        const { userId } = req.params;
+
+        const videos = await VideoMetadataModel.aggregate([
+            {
+                $match: {
+                    userId: new mongoose.Types.ObjectId(userId)
+                }
+
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "poster_details"
+                }
+            },
+
+            {
+                $addFields: {
+                    poster_details: {
+                        $arrayElemAt: ["$poster_details", 0]
+                    }
+                }
+            },
+            {
+                $unset: [
+                    "poster_details._id",
+                    "poster_details.watchHistory",
+                    "poster_details.isPremium"
+                ]
+            },
+            {
+                $sort: {
+                    createdAt: -1
+                }
+            },
+            { $skip: (page - 1) * limit },
+            { $limit: limit }
+        ]);
+
+        const payload = {
+            videos,
+        }
+
+        return res.status(200).json(success(200, payload, "Get user videos successfully"));
+    }
+
     async getUserFeed(req: Request, res: Response) {
-        
+
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const userWithSession = req.user;
         const userId = userWithSession?.id;
 
         let videos: any[];
-        if(!userWithSession || !userId) {
+        if (!userWithSession || !userId) {
             videos = await trendingVideoService.getTrendingVideos(limit, page);
         } else {
             videos = await recommendationService.getRecommendedVideos(userId, limit, page);
@@ -97,21 +149,21 @@ class VideoMetadataController {
     }
 
     async getUserRelatedVideoRecommendation(req: Request, res: Response) {
-        
+
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 10;
         const videoId = req.query.videoId as string;
         const userWithSession = req.user;
         const userId = userWithSession?.id;
 
-     
 
-        if(!videoId) {
+
+        if (!videoId) {
             return res.status(400).json(failure(400, "Video Id is not there"));
         }
 
         let videos: any[];
-        if(!userWithSession || !userId) {
+        if (!userWithSession || !userId) {
             videos = await trendingVideoService.getTrendingVideosByVideo(videoId, limit, page);
         } else {
             videos = await recommendationService.getRecommendedVideosByVideo(userId, videoId, limit, page);
