@@ -22,6 +22,10 @@
     "@aws-sdk/client-sqs": "^3.925.0",
     "@types/node": "^24.10.0",
     "concurrently": "^9.2.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "npm-force-resolutions": "^0.0.10"
+  },
+  "overrides": {
+    "jose": "^5.10.0"
   }
 }

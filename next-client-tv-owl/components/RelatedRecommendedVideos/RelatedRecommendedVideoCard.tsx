@@ -111,7 +111,7 @@ const RelatedRecommendedVideoCard = ({
                         <h2 className="font-sans text-md wrap-break-word">{title}</h2>
                         <div className="mt-1 text-sm text-muted-foreground hidden lg:block">
                             {username} <br />
-                            {views} views | {`${durationAgo} ago`}
+                            {`${durationAgo} ago`}
                         </div>
 
                         <div className="mt-1 text-sm text-muted-foreground lg:hidden">
@@ -119,7 +119,8 @@ const RelatedRecommendedVideoCard = ({
                         </div>
                         <div className="mt-1 text-sm text-muted-foreground lg:hidden">
                             {truncateWords(shortDescription, 100)} <br />
-                            {views} views | {`${durationAgo} ago`}
+                             
+			    {`${durationAgo} ago`}
                         </div>
 
                     </div>

@@ -168,7 +168,7 @@ export default function CardPost({
             <div className="mt-1 text-sm">
               {username} <br />
               <p className="truncate w-72 text-muted-foreground">{shortDescription}<br /></p>
-              <span className="text-muted-foreground">{views} views | {durationAgo} ago</span>
+              <span className="text-muted-foreground">{/* {views} views | */}{durationAgo} ago</span>
             </div>
           </div>
         </div>
