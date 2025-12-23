@@ -1,4 +1,4 @@
-const NODE_SEVER_BASE_URL = "http://13.50.111.253:5000/api";
+const NODE_SEVER_BASE_URL = "https://api.tvowl.in/api";
 
 const APIS = {
     GET_FEED: `${NODE_SEVER_BASE_URL}/video-metadata/feed`,
