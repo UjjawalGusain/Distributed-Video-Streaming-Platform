@@ -210,7 +210,6 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
                                 {/*<SettingsMenu onItemClick={onSettingsItemClick} />*/}
 
                                 <Button
-                                    ref={ref}
                                     size="icon"
                                     variant="ghost"
                                     className="text-muted-foreground size-8 rounded-full shadow-none hidden lg:flex justify-center items-center"
@@ -290,4 +289,4 @@ export const Navbar14 = React.forwardRef<HTMLElement, Navbar14Props>(
 
 Navbar14.displayName = 'Navbar14';
 
-export { InfoMenu, NotificationMenu, SettingsMenu };
+export { InfoMenu, NotificationMenu };
