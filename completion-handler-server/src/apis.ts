@@ -1,4 +1,4 @@
-const SERVER_BASE_URL = "http://api-server:5000/api";
+const SERVER_BASE_URL = "http://localhost:5000/api";
 
 const APIS = {
     PUBLISH_VIDEO_FORMATS: `${SERVER_BASE_URL}/video/publish-formats`,
